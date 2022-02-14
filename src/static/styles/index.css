@@ -6,7 +6,7 @@ body{
 	font-size: 15px;
 	line-height: 1.7;
 	color: #c4c3ca;
-	background-image: url('https://wallpaperaccess.com/full/191736.jpg');
+	background-image: url('../img/bg.jpg');
 	background-size: cover;
 	/* overflow-x: none; */
 }

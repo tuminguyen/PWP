@@ -90,4 +90,4 @@ def add_sport():
 
 
 db.create_all()
-# app.run(debug=True)
+app.run(debug=True)
