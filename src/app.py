@@ -1,9 +1,12 @@
 # This is where we define the APIs and redirect/call to display the corresponding HTML pages
+import datetime
+
 import sqlalchemy.types
 from flask import Flask
 from flask import request, jsonify
 from flask import jsonify
 from flask import render_template
+from flask_restful import Resource
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.engine import Engine
@@ -27,13 +30,36 @@ class Sport(db.Model):
     name = db.Column(db.String(32), nullable=False)
     courts = db.relationship("Court", backref='sport')
 
+    def serialize(self):
+        doc = {
+            "id": self.id,
+            "name": self.name,
+            "courts": []
+        }
+        for c in self.courts:
+            doc["courts"].append(c.serialize(display_all=True))
+        return doc
+
 
 class Court(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sport_id = db.Column(db.Integer, db.ForeignKey("sport.id"))
     court_no = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
     free_slots = db.Column(db.String(200), nullable=False)
     reservations = db.relationship("Reservation", backref="court")
+
+    def serialize(self, display_all=False):
+        doc = {
+            "date": self.date,
+            "court_no": self.court_no
+        }
+        sport = Sport.query(id=self.sport_id).first()
+        doc["sport"] = sport.name
+        if display_all:
+            doc['id'] = self.id
+            doc['free_slots'] = self.free_slots
+        return doc
 
 
 class User(db.Model):
@@ -47,6 +73,21 @@ class User(db.Model):
     avatar = db.Column(db.String(128))
     reservations = db.relationship("Reservation", backref="user")
 
+    def serialize(self, display_all=False):
+        doc = {
+            "username": self.username,
+            "first_name": self.fname,
+            "last_name": self.lname,
+            "phone": self.phone,
+            "email": self.email
+        }
+        if display_all:
+            doc["address"] = self.addr
+            doc["reservations"] = []
+            for r in self.reservations:
+                doc["reservations"].append(r.serialize(display_all=False))
+        return doc
+
 
 class Reservation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -54,6 +95,18 @@ class Reservation(db.Model):
     court_id = db.Column(db.Integer, db.ForeignKey('court.id'))
     start = db.Column(db.String(10), nullable=False)
     end = db.Column(db.String(10), nullable=False)
+
+    def serialize(self, short_form=False):
+        doc = {
+            "start": self.fname,
+            "end": self.lname,
+        }
+        court = Court.query(id=self.court_id).first()
+        doc["court_info"] = court.serialize(display_all=False)
+        if not short_form:
+            doc["username"] = self.username
+            doc['id'] = self.id
+        return doc
 
 
 def populate_db():
@@ -65,28 +118,51 @@ def index():
     return render_template('index.html')
 
 
-@app.route("/sport/add/", methods=['POST'])
-def add_sport():
-    if request.method != 'POST':
-        return "POST method required", 405
-    data = request.get_json()
-    if data is not None:
-        if 'name' in data:
-            name = data['name']
-            prod_list_id = [s.name.lower() for s in Sport.query.all()]
-            if name.lower() in prod_list_id:
-                return "Sport already exists", 409
+class UserCollection(Resource):
+    def get(self):
+        if request.method == 'GET':
+            res = [u.serialize(display_all=False) for u in User.query.all()]
+            return res, 200
+        return "GET method required", 405
+
+    def post(self):
+        if request.method != 'POST':
+            return "POST method required", 405
+        data = request.get_json()
+        if data is not None:
+            if 'username' in data and 'pwd' in data and 'email' in data:
+                id = data['username']
+                pwd = data['pwd']
+                email = data['email']
+                user_list_id = [u.username for u in User.query.all()]
+                if id in user_list_id:
+                    return "Handle already exists", 409
+                else:
+                    user = User(
+                        username=id,
+                        pwd=pwd,
+                        fname='',
+                        lname='',
+                        phone='',
+                        addr='',
+                        email=email,
+                        avatar=''
+                    )
+                    db.session.add(user)
+                    db.session.commit()
+                    return "", 201
             else:
-                sport = Sport(
-                    name=name,
-                )
-                db.session.add(sport)
-                db.session.commit()
-                return "", 201
+                return "Incomplete request - missing fields", 400
         else:
-            return "Incomplete request - missing fields", 400
-    else:
-        return "Request content type must be JSON", 415
+            return "Request content type must be JSON", 415
+
+
+class UserItem(Resource):
+    def get(self, user):
+        if request.method == 'GET':
+            user = User.query(username=user).first()
+            return user.serialize(display_all=True), 200
+        return "GET method required", 405
 
 
 db.create_all()
