@@ -13,11 +13,6 @@
 pip install -r requirements.txt 
 ```
 
-### Populate database
-```
-python populate_db.py
-```
-
 # Run and Test
 
 ### Using command line and testing API

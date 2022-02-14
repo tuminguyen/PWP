@@ -10,7 +10,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy import event
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///byc.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///../db/byc.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
@@ -56,9 +56,37 @@ class Reservation(db.Model):
     end = db.Column(db.String(10), nullable=False)
 
 
+def populate_db():
+    passs
+
+
 @app.route("/", methods=['POST', 'GET'])
 def index():
     return render_template('index.html')
+
+
+@app.route("/sport/add/", methods=['POST'])
+def add_sport():
+    if request.method != 'POST':
+        return "POST method required", 405
+    data = request.get_json()
+    if data is not None:
+        if 'name' in data:
+            name = data['name']
+            prod_list_id = [s.name.lower() for s in Sport.query.all()]
+            if name.lower() in prod_list_id:
+                return "Sport already exists", 409
+            else:
+                sport = Sport(
+                    name=name,
+                )
+                db.session.add(sport)
+                db.session.commit()
+                return "", 201
+        else:
+            return "Incomplete request - missing fields", 400
+    else:
+        return "Request content type must be JSON", 415
 
 
 db.create_all()
