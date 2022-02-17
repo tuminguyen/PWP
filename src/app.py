@@ -7,15 +7,27 @@ from flask import request, jsonify
 from flask import jsonify
 from flask import render_template
 from flask_restful import Resource
+from flask_mail import Mail, Message
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
+from flask_restful import Api
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
 
 app = Flask(__name__)
+api = Api(app)
+# config db
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///../db/byc.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
+# config mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'bookyourcourt.info@gmail.com'
+app.config['MAIL_PASSWORD'] = 'NguyenYadav@199x'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app)
 
 
 @event.listens_for(Engine, "connect")
@@ -135,8 +147,11 @@ class UserCollection(Resource):
                 pwd = data['pwd']
                 email = data['email']
                 user_list_id = [u.username for u in User.query.all()]
+                user_list_email = [u.email for u in User.query.all()]
                 if id in user_list_id:
-                    return "Handle already exists", 409
+                    return "Username already used by others", 409
+                elif email in user_list_email:
+                    return "Email has been registered by other user. Please use another.", 409
                 else:
                     user = User(
                         username=id,
@@ -148,8 +163,13 @@ class UserCollection(Resource):
                         email=email,
                         avatar=''
                     )
-                    db.session.add(user)
-                    db.session.commit()
+                    # db.session.add(user)
+                    # db.session.commit()
+                    msg = Message('BYC - Confirm your new account',
+                                  sender='bookyourcourt.info@gmail.com',
+                                  recipients=[email])
+                    msg.html = render_template('mail_confirm_account.html')
+                    mail.send(msg)
                     return "", 201
             else:
                 return "Incomplete request - missing fields", 400
@@ -165,5 +185,37 @@ class UserItem(Resource):
         return "GET method required", 405
 
 
+class SportCollection(Resource):
+    def get(self, id):
+        if request.method == 'GET':
+            user = Sport.query(id=id).first()
+
+            return user.serialize(display_all=True), 200
+        return "GET method required", 405
+
+    def post(self):
+        if request.method != 'POST':
+            return "POST method required", 405
+        data = request.get_json()
+        if data is not None:
+            if 'name' in data:
+                name = data['name']
+                prod_list_id = [s.name.lower() for s in Sport.query.all()]
+                if name.lower() in prod_list_id:
+                    return "Sport already exists", 409
+                else:
+                    sport = Sport(
+                        name=name,
+                    )
+                    db.session.add(sport)
+                    db.session.commit()
+                    return "", 201
+            else:
+                return "Incomplete request - missing fields", 400
+        else:
+            return "Request content type must be JSON", 415
+
+
 db.create_all()
+api.add_resource(UserCollection, "/api/users/")
 app.run(debug=True)

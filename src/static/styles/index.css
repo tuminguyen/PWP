@@ -44,10 +44,20 @@ h6 span{
   font-weight: 700;
 }
 
+.logo-wrap {
+    display: flex;
+    padding: 40px
+}
+
+.logo-wrap img{
+    width: 7%;
+    margin-right: 30px
+}
+
+
 .section{
   position: relative;
   padding-bottom: 3rem;
-  padding-top: 3rem;
   width: 100%;
   display: block;
 }
@@ -95,8 +105,6 @@ h6 span{
   font-size: 25px;
   transition: all 0.5s ease;
 }
-
-/* https://github.com/tomhodgins/unicons/blob/master/unicons.css */
 
 .checkbox:checked + label:before {
   transform: translateX(50px) rotate(180deg);
@@ -341,4 +349,8 @@ h6 span{
 
 .mb-2{
     margin-bottom: 2rem !important;
+}
+
+.message-wrap{
+    padding: 40px
 }
