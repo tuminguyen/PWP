@@ -163,8 +163,8 @@ class UserCollection(Resource):
                         email=email,
                         avatar=''
                     )
-                    # db.session.add(user)
-                    # db.session.commit()
+                    db.session.add(user)
+                    db.session.commit()
                     msg = Message('BYC - Confirm your new account',
                                   sender='bookyourcourt.info@gmail.com',
                                   recipients=[email])
