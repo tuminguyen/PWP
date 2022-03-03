@@ -2,7 +2,7 @@
 import datetime
 
 import sqlalchemy.types
-from flask import Flask
+from flask import Flask, make_response
 from flask import request, jsonify
 from flask import jsonify
 from flask import render_template
@@ -140,41 +140,35 @@ class UserCollection(Resource):
     def post(self):
         if request.method != 'POST':
             return "POST method required", 405
-        data = request.get_json()
-        if data is not None:
-            if 'username' in data and 'pwd' in data and 'email' in data:
-                id = data['username']
-                pwd = data['pwd']
-                email = data['email']
-                user_list_id = [u.username for u in User.query.all()]
-                user_list_email = [u.email for u in User.query.all()]
-                if id in user_list_id:
-                    return "Username already used by others", 409
-                elif email in user_list_email:
-                    return "Email has been registered by other user. Please use another.", 409
-                else:
-                    user = User(
-                        username=id,
-                        pwd=pwd,
-                        fname='',
-                        lname='',
-                        phone='',
-                        addr='',
-                        email=email,
-                        avatar=''
-                    )
-                    db.session.add(user)
-                    db.session.commit()
-                    msg = Message('BYC - Confirm your new account',
-                                  sender='bookyourcourt.info@gmail.com',
-                                  recipients=[email])
-                    msg.html = render_template('mail_confirm_account.html')
-                    mail.send(msg)
-                    return "", 201
-            else:
-                return "Incomplete request - missing fields", 400
+        id = request.form.get('sign-name')
+        pwd = request.form.get('sign-pwd')
+        email = request.form.get('sign-email')
+        print(id, pwd, email)
+        user_list_id = [u.username for u in User.query.all()]
+        user_list_email = [u.email for u in User.query.all()]
+        if id in user_list_id:
+            return "Username already used by others", 409
+        elif email in user_list_email:
+            return "Email has been registered by other user. Please use another.", 409
         else:
-            return "Request content type must be JSON", 415
+            user = User(
+                username=id,
+                pwd=pwd,
+                fname='',
+                lname='',
+                phone='',
+                addr='',
+                email=email,
+                avatar=''
+            )
+            db.session.add(user)
+            db.session.commit()
+            msg = Message('BYC - Confirm your new account',
+                          sender='bookyourcourt.info@gmail.com',
+                          recipients=[email])
+            msg.html = render_template('mail_confirm_account.html')
+            mail.send(msg)
+            return make_response(render_template('after_signup.html'), 200)
 
 
 class UserItem(Resource):

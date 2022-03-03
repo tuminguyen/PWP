@@ -52,28 +52,30 @@
                                 <div class="card-back">
                                     <div class="center-wrap">
                                         <div class="section text-center">
-                                            <h2 class="title-log-sign">Sign Up</h2>
-                                            <div class="form-group">
-                                                <input type="text" name="sign-name" class="form-style"
-                                                       placeholder="Username" id="sign-name" autocomplete="off">
-                                                <i class="input-icon fa fa-user"></i>
-                                            </div>
-                                            <div class="form-group mt-2">
-                                                <input type="email" name="sign-email" class="form-style"
-                                                       placeholder="Email" id="sign-email" autocomplete="off">
-                                                <i class="input-icon fa fa-envelope"></i>
-                                            </div>
-                                            <div class="form-group mt-2">
-                                                <input type="password" name="sign-pwd" class="form-style"
-                                                       placeholder="Password" id="sign-pwd" autocomplete="off">
-                                                <i class="input-icon fa fa-key"></i>
-                                            </div>
-                                            <div class="form-group mt-2">
-                                                <input type="password" name="sign-pwd-retype" class="form-style"
-                                                       placeholder="Confirm Password" id="sign-pwd-retype" autocomplete="off">
-                                                <i class="input-icon fa fa-key"></i>
-                                            </div>
-                                            <a href="#" class="btn mt-2 mb-2">submit</a>
+                                            <h2 class="title-log-sign" id="title-log-sign">Sign Up</h2>
+                                            <form action="/api/users/" method="POST" id="signup">
+                                                <div class="form-group">
+                                                    <input type="text" name="sign-name" class="form-style"
+                                                           placeholder="Username" id="sign-name" autocomplete="off">
+                                                    <i class="input-icon fa fa-user"></i>
+                                                </div>
+                                                <div class="form-group mt-2">
+                                                    <input type="email" name="sign-email" class="form-style"
+                                                           placeholder="Email" id="sign-email" autocomplete="off">
+                                                    <i class="input-icon fa fa-envelope"></i>
+                                                </div>
+                                                <div class="form-group mt-2">
+                                                    <input type="password" name="sign-pwd" class="form-style"
+                                                           placeholder="Password" id="sign-pwd" autocomplete="off">
+                                                    <i class="input-icon fa fa-key"></i>
+                                                </div>
+                                                <div class="form-group mt-2">
+                                                    <input type="password" name="sign-pwd-retype" class="form-style"
+                                                           placeholder="Confirm Password" id="sign-pwd-retype" autocomplete="off">
+                                                    <i class="input-icon fa fa-key"></i>
+                                                </div>
+                                                <button id='signup-btn' type="submit" class="btn mt-2 mb-2">submit</button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
