@@ -1,5 +1,6 @@
 # This is where we define the APIs and redirect/call to display the corresponding HTML pages
 import datetime
+import time
 
 import sqlalchemy.types
 from flask import Flask, make_response
@@ -122,6 +123,10 @@ class Reservation(db.Model):
 
 
 def populate_db():
+    """
+    Auto generate sport and courts
+    :return:
+    """
     passs
 
 
@@ -143,7 +148,6 @@ class UserCollection(Resource):
         id = request.form.get('sign-name')
         pwd = request.form.get('sign-pwd')
         email = request.form.get('sign-email')
-        print(id, pwd, email)
         user_list_id = [u.username for u in User.query.all()]
         user_list_email = [u.email for u in User.query.all()]
         if id in user_list_id:
@@ -179,6 +183,28 @@ class UserItem(Resource):
         return "GET method required", 405
 
 
+@app.route("/login", methods=['POST'])
+def login():
+    return render_template("booking.html")
+
+
+@app.route("/forgot-password", methods=['GET'])
+def forgot_pwd():
+    return render_template('forgot_pwd.html')
+
+
+@app.route("/resend-password", methods=['POST'])
+def resend_pwd():
+    email = request.form.get('log-email')
+    user = User.query.filter_by(email=email).first()
+    msg = Message('BYC - Restore your password',
+                  sender='bookyourcourt.info@gmail.com',
+                  recipients=[email])
+    msg.html = render_template('mail_forgot_pwd.html', pwd=user.pwd)
+    mail.send(msg)
+    return render_template('index.html')
+
+
 class SportCollection(Resource):
     def get(self, id):
         if request.method == 'GET':
@@ -212,4 +238,3 @@ class SportCollection(Resource):
 
 db.create_all()
 api.add_resource(UserCollection, "/api/users/")
-app.run(debug=True)
