@@ -1,6 +1,8 @@
 # PWP SPRING 2022
 # BYC - Book Your Court
 
+![BYCHomepage](uploads/homepage.png)
+
 # Group information
 * Student 1. Huong Nguyen _(Huong.Nguyen@oulu.fi)_
 * Student 2. Vandana Yadav _(vandana.mj24@gmail.com)_
