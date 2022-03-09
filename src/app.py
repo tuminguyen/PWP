@@ -40,7 +40,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 class Sport(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(32), nullable=False)
+    name = db.Column(db.String(32), nullable=False, unique=True)
     courts = db.relationship("Court", backref='sport')
 
     def serialize(self):
@@ -56,7 +56,7 @@ class Sport(db.Model):
 
 class Court(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    sport_id = db.Column(db.Integer, db.ForeignKey("sport.id"))
+    sport_name = db.Column(db.String(32), db.ForeignKey("sport.name"))
     court_no = db.Column(db.Integer, nullable=False)
     date = db.Column(db.DateTime, nullable=False)
     free_slots = db.Column(db.String(200), nullable=False)
@@ -122,14 +122,6 @@ class Reservation(db.Model):
         return doc
 
 
-def populate_db():
-    """
-    Auto generate sport and courts
-    :return:
-    """
-    passs
-
-
 @app.route("/", methods=['POST', 'GET'])
 def index():
     return render_template('index.html')
@@ -185,7 +177,15 @@ class UserItem(Resource):
 
 @app.route("/login", methods=['POST'])
 def login():
-    return render_template("booking.html")
+    uname = request.form.get('log-name')
+    try:
+        user = User.query.filter_by(username=uname).first()
+        if user.pwd == request.form.get('log-pwd'):
+            return render_template("booking_check_confirm.html")
+        else:
+            return "Wrong username or password. Please try again!", 409
+    except Exception as e:
+        return str(e), 500
 
 
 @app.route("/forgot-password", methods=['GET'])
@@ -196,13 +196,16 @@ def forgot_pwd():
 @app.route("/resend-password", methods=['POST'])
 def resend_pwd():
     email = request.form.get('log-email')
-    user = User.query.filter_by(email=email).first()
-    msg = Message('BYC - Restore your password',
-                  sender='bookyourcourt.info@gmail.com',
-                  recipients=[email])
-    msg.html = render_template('mail_forgot_pwd.html', pwd=user.pwd)
-    mail.send(msg)
-    return render_template('index.html')
+    try:
+        user = User.query.filter_by(email=email).first()
+        msg = Message('BYC - Restore your password',
+                      sender='bookyourcourt.info@gmail.com',
+                      recipients=[email])
+        msg.html = render_template('mail_forgot_pwd.html', pwd=user.pwd)
+        mail.send(msg)
+        return render_template('index.html')
+    except Exception as e:
+        return str(e), 500
 
 
 class SportCollection(Resource):
@@ -234,6 +237,14 @@ class SportCollection(Resource):
                 return "Incomplete request - missing fields", 400
         else:
             return "Request content type must be JSON", 415
+
+
+def populate_db():
+    """
+    Auto generate sport and courts
+    :return:
+    """
+    pass
 
 
 db.create_all()
