@@ -1,85 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>BYC - Book Your Court</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/bootstrap.min.css')}}">
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/unicons.css')}}">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/index.css')}}">
-        <script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
-        <script src="{{ url_for('static', filename='js/jquery-1.12.0.min.js')}}"></script>
-    </head>
-    <body>
-    <div class="logo-wrap">
-        <img src="https://raw.githubusercontent.com/tuminguyen/PWP/master/src/static/img/BYC_logo.jpg">
-        <h1>Book Your Court Today!</h1>
-    </div>
-    <div class="section">
-        <div class="container">
-            <div class="row full-height justify-content-center">
-                <div class="col-12 text-center align-self-center">
-                    <div class="section text-center">
-                        <h4 id="log-or-sign">
-                            <span>Log In </span>
-                            <span>Sign Up</span>
-                        </h4>
-                        <input class="checkbox" type="checkbox" id="reg-log" name="reg-log"/>
-                        <label for="reg-log"></label>
-                        <div class="card-3d-wrap">
-                            <div class="card-3d-wrap-insider">
-                                <div class="card-front">
-                                    <div class="center-wrap">
-                                        <div class="section text-center">
-                                            <h2 class="title-log-sign">Log In</h2>
-                                            <form action="/login" method="POST" id="login">
-                                                <div class="form-group">
-                                                    <input type="text" name="log-name" class="form-style"
-                                                           placeholder="Username" id="log-name" autocomplete="off">
-                                                    <i class="fa fa-user input-icon"></i>
-                                                </div>
-                                                <div class="form-group mt-2">
-                                                    <input type="password" name="log-pwd" class="form-style"
-                                                           placeholder="Password" id="log-pwd" autocomplete="off">
-                                                    <i class="input-icon fa fa-key"></i>
-                                                </div>
-                                                <button type="submit" class="btn mt-2 mb-2">Log In</button>
-                                            </form>
-                                            <p class="mt-2 text-center">
-                                                <a name="submit-btn" href="/forgot-password" onclick="forgot_pwd()" class="link">Forgot your password?</a>
-                                            </p>
-                                        </div>
+<head>
+    <title>BYC - Book Your Court</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/bootstrap.min.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/unicons.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/index.css')}}">
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-1.12.0.min.js')}}"></script>
+</head>
+<body>
+<div class="logo-wrap">
+    <img src="https://raw.githubusercontent.com/tuminguyen/PWP/master/src/static/img/BYC_logo.jpg">
+    <h1>Book Your Court Today!</h1>
+</div>
+<div class="section">
+    <div class="container">
+        <div class="row full-height justify-content-center">
+            <div class="col-12 text-center align-self-center">
+                <div class="section text-center">
+                    <h4 id="log-or-sign">
+                        <span>Log In </span>
+                        <span>Sign Up</span>
+                    </h4>
+                    <input class="checkbox" type="checkbox" id="reg-log" name="reg-log"/>
+                    <label for="reg-log"></label>
+                    <div class="card-3d-wrap">
+                        <div class="card-3d-wrap-insider">
+                            <div class="card-front">
+                                <div class="center-wrap">
+                                    <div class="section text-center">
+                                        <h2 class="title-log-sign">Log In</h2>
+                                        <form action="/login" method="POST" id="login">
+                                            <div class="form-group">
+                                                <input type="text" name="log-name" class="form-style" required
+                                                       placeholder="Username" id="log-name" autocomplete="off">
+                                                <i class="fa fa-user input-icon"></i>
+                                            </div>
+                                            <div class="form-group mt-2">
+                                                <input type="password" name="log-pwd" class="form-style" required
+                                                       placeholder="Password" id="log-pwd" autocomplete="off">
+                                                <i class="input-icon fa fa-key"></i>
+                                            </div>
+                                            <button type="submit" class="btn mt-2 mb-2">Log In</button>
+                                        </form>
+                                        <p class="mt-2 text-center">
+                                            <a name="submit-btn" href="/forgot-password" onclick="forgot_pwd()"
+                                               class="link">Forgot your password?</a>
+                                        </p>
                                     </div>
                                 </div>
-                                <div class="card-back">
-                                    <div class="center-wrap">
-                                        <div class="section text-center">
-                                            <h2 class="title-log-sign" id="title-log-sign">Sign Up</h2>
-                                            <form action="/api/users/" method="POST" id="signup">
-                                                <div class="form-group">
-                                                    <input type="text" name="sign-name" class="form-style"
-                                                           placeholder="Username" id="sign-name" autocomplete="off">
-                                                    <i class="input-icon fa fa-user"></i>
-                                                </div>
-                                                <div class="form-group mt-2">
-                                                    <input type="email" name="sign-email" class="form-style"
-                                                           placeholder="Email" id="sign-email" autocomplete="off">
-                                                    <i class="input-icon fa fa-envelope"></i>
-                                                </div>
-                                                <div class="form-group mt-2">
-                                                    <input type="password" name="sign-pwd" class="form-style"
-                                                           placeholder="Password" id="sign-pwd" autocomplete="off">
-                                                    <i class="input-icon fa fa-key"></i>
-                                                </div>
-                                                <div class="form-group mt-2">
-                                                    <input type="password" name="sign-pwd-retype" class="form-style"
-                                                           placeholder="Confirm Password" id="sign-pwd-retype" autocomplete="off">
-                                                    <i class="input-icon fa fa-key"></i>
-                                                </div>
-                                                <button id='signup-btn' type="submit" class="btn mt-2 mb-2">Sign up</button>
-                                            </form>
-                                        </div>
+                            </div>
+                            <div class="card-back">
+                                <div class="center-wrap">
+                                    <div class="section text-center">
+                                        <h2 class="title-log-sign" id="title-log-sign">Sign Up</h2>
+                                        <form action="/api/users/" method="POST" id="signup">
+                                            <div class="form-group">
+                                                <input type="text" name="sign-name" class="form-style" required
+                                                       placeholder="Username" id="sign-name" autocomplete="off">
+                                                <i class="input-icon fa fa-user"></i>
+                                            </div>
+                                            <div class="form-group mt-2">
+                                                <input type="email" name="sign-email" class="form-style" required
+                                                       placeholder="Email" id="sign-email" autocomplete="off">
+                                                <i class="input-icon fa fa-envelope"></i>
+                                            </div>
+                                            <div class="form-group mt-2">
+                                                <input type="password" name="sign-pwd" class="form-style" required
+                                                       placeholder="Password" id="sign-pwd" autocomplete="off">
+                                                <i class="input-icon fa fa-key"></i>
+                                            </div>
+                                            <div class="form-group mt-2">
+                                                <input type="password" name="sign-pwd-retype" class="form-style"
+                                                       required placeholder="Confirm Password" id="sign-pwd-retype"
+                                                       autocomplete="off">
+                                                <i class="input-icon fa fa-key"></i>
+                                            </div>
+                                            <button id='signup-btn' type="submit" class="btn mt-2 mb-2">Sign up</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -89,8 +90,9 @@
             </div>
         </div>
     </div>
-    <div class="copy-right">
-        <span>Copyright © 2022 tuminguyen</span>
-    </div>
-    </body>
+</div>
+<div class="copy-right">
+    <span>Copyright © 2022 tuminguyen</span>
+</div>
+</body>
 </html>
