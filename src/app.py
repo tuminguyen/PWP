@@ -14,6 +14,8 @@ from sqlalchemy.exc import IntegrityError
 from flask_restful import Api
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
+from datetime import date, datetime
+from sqlalchemy import and_, or_
 
 app = Flask(__name__)
 api = Api(app)
@@ -83,7 +85,6 @@ class User(db.Model):
     phone = db.Column(db.String(64))
     addr = db.Column(db.String(64))
     email = db.Column(db.String(128), nullable=False)
-    avatar = db.Column(db.String(128))
     reservations = db.relationship("Reservation", backref="user")
 
     def serialize(self, display_all=False):
@@ -111,11 +112,12 @@ class Reservation(db.Model):
 
     def serialize(self, short_form=False):
         doc = {
-            "start": self.fname,
-            "end": self.lname,
+            "start": self.start,
+            "end": self.end,
         }
         court = Court.query(id=self.court_id).first()
         doc["court_info"] = court.serialize(display_all=False)
+
         if not short_form:
             doc["username"] = self.username
             doc['id'] = self.id
@@ -154,8 +156,7 @@ class UserCollection(Resource):
                 lname='',
                 phone='',
                 addr='',
-                email=email,
-                avatar=''
+                email=email
             )
             db.session.add(user)
             db.session.commit()
@@ -239,13 +240,131 @@ class SportCollection(Resource):
             return "Request content type must be JSON", 415
 
 
+class SportByName(Resource):
+    def get(self):
+        pass
+
+    def delete(self):
+        pass
+
+
+class SportByCourt(Resource):
+    def get(self):
+        pass
+
+
 def populate_db():
     """
     Auto generate sport and courts
     :return:
     """
-    pass
+    badminton = Sport(name='badminton')
+    db.session.add(badminton)
+    tennis = Sport(name="tennis")
+    db.session.add(tennis)
+    basketball = Sport(name="basketball")
+    db.session.add(basketball)
+
+    # add courts
+    # 6 courts for badminton
+    for i in range(1, 7):
+        for j in range(1, 8):
+            bad_court = Court(
+                court_no=i, date=date(2022, 3, 17 + j), free_slots="9-10-11-12-13-14-15-16-17-18-19-20-21-22-23")
+            badminton.courts.append(bad_court)
+            db.session.add(badminton)
+
+    # 4 courts for tennis
+    for i in range(1, 5):
+        for j in range(1, 8):
+            t_court = Court(
+                court_no=i, date=date(2022, 3, 17 + j), free_slots="7-8-11-12-13-14-15-16-17-18-19-20-21-22-23")
+            tennis.courts.append(t_court)
+            db.session.add(tennis)
+
+    # 3 courts for tennis
+    for i in range(1, 4):
+        for j in range(1, 8):
+            bb_court = Court(
+                court_no=i, date=date(2022, 3, 17 + j), free_slots="7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22-23")
+            basketball.courts.append(bb_court)
+            db.session.add(basketball)
+    db.session.commit()
+
+
+class CourtsById(Resource):
+    def get(self):
+        pass
+
+    def put(self):
+        pass
+
+    def delete(self):
+        pass
+
+
+class CourtsByInputDateCollection(Resource):
+    # get free_slots for sport_id and date,
+    # returns slot_list: contains slots for each court of chosen sport & date
+    def get(self):
+        if request.method == 'GET':
+            input_date = request.args['input_date']
+            sport_id = request.args['sport_name']
+            input_date = datetime.strptime(input_date, '%d/%m/%Y').date()
+            courts_list = Court.query.filter(and_(Court.sport_id == int(sport_id), Court.date == input_date)).all()
+            slots_list = []
+            for i in range(len(courts_list)):
+                slots_list.append(courts_list[i].free_slots)
+                print(courts_list[i].free_slots)
+            return {sport_id: slots_list}, 200
+        # serialize(self, display_all=True)
+        return "GET method required", 405
+
+
+class CourtByInputDateItem(Resource):
+    # after selection, update the free_slots in the db for specific court_no of chosen sport and date.
+    def put(self):
+        if request.method != 'PUT':
+            return "PUT method required", 405
+        data = request.get_json()
+        sport_id = data['sport_id']
+        input_date = data['input_date']
+        input_date = datetime.strptime(input_date, '%d/%m/%Y').date()
+        court_no = data['court_no']
+        chosen_time = data['chosen_time']
+        court = Court.query.filter(and_(Court.sport_id == sport_id, Court.date == input_date,
+                                        Court.court_no == court_no)).first()
+        slot = court.free_slots
+        print(slot)
+        slot_updated = slot.replace(chosen_time + "-", "")
+        court.free_slots = slot_updated
+        print(slot_updated)
+        db.session.commit()
+        print(court.free_slots)
+        return "Success", 204
+
+
+class ReservationCollection(Resource):
+    # get all reservations for view history of logged-in user
+    def get(self, user):
+        if request.method == 'GET':
+            book_user_list = Reservation.query(username=user).all()
+            return book_user_list.serialize(display_all=True), 200
+        return "GET method required", 405
+
+    def post(self):
+        pass
+
+
+class ReservationById(Resource):
+    def get(self):
+        pass
+
+    def delete(self):
+        pass
 
 
 db.create_all()
+populate_db()
 api.add_resource(UserCollection, "/api/users/")
+api.add_resource(CourtsByInputDateCollection, "/api/sports/")
