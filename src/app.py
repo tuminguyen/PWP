@@ -1,11 +1,12 @@
 # This is where we define the APIs and redirect/call to display the corresponding HTML pages
 import datetime
+import os.path
 import time
-
+import click
+from flask.cli import with_appcontext
 import sqlalchemy.types
 from flask import Flask, make_response
 from flask import request, jsonify
-from flask import jsonify
 from flask import render_template
 from flask_restful import Resource
 from flask_mail import Mail, Message
@@ -364,7 +365,28 @@ class ReservationById(Resource):
         pass
 
 
-db.create_all()
-populate_db()
+@click.command("init-db")
+@with_appcontext
+def init_db_cmd():
+    if not os.path.exists("../src/*.db"):
+        db.create_all()
+
+
+@click.command("delete-db")
+@with_appcontext
+def delete_db_cmd():
+    db.drop_all()
+
+
+@click.command("populate-db")
+@with_appcontext
+def populate_db_cmd():
+    populate_db()
+
+
+app.cli.add_command(init_db_cmd)
+app.cli.add_command(delete_db_cmd)
+app.cli.add_command(populate_db_cmd)
+
 api.add_resource(UserCollection, "/api/users/")
 api.add_resource(CourtsByInputDateCollection, "/api/sports/")

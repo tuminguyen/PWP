@@ -16,10 +16,26 @@ pip install -r requirements.txt
 ```
 
 # Run and Test
+1. Open terminal
+2. Make bash files executable
+```
+chmod +x run.sh
+chmod +x delete_db.sh
+```
+3. Run the program (auto generate table)
+```
+# Option 1: Auto populate database
+./run.sh -p true 
 
+# Option 2: Not populate database
+./run.sh -p false 
 ```
-1. python run.py
-2. Open your browser and access 127.0.0.1:5000
+
+4. Open your browser and access 127.0.0.1:5000
+5. Delete all tables and database whenever you want by executing
 ```
+./delete_db.sh
+```
+
 
 [//]: # (_Remember to include all required documentation and HOWTOs, including how to create and populate the database, how to run and test the API, the url to the entrypoint and instructions on how to setup and run the client_)
