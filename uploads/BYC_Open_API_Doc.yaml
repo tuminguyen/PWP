@@ -27,7 +27,7 @@ components:
         type: integer
     input_date:
       description: Input date
-      in: path
+      in: query
       name: input_date
       required: true
       schema:
@@ -39,13 +39,6 @@ components:
       required: true
       schema:
         type: integer
-    chosen_time:
-      description: Selected time by user
-      in: path
-      name: chosen_time
-      required: true
-      schema:
-        type: string
   schemas:
     User:
       properties:
@@ -143,6 +136,25 @@ components:
         - start
         - end
       type: object
+    Freeslot:
+      description: request schema to add a update freeslot of a court
+      properties:
+        date:
+          description: Date selected by user
+          type: string
+        start:
+          description: Shift starting time
+          type: string
+        end:
+          description: Shift end time
+          type: string
+      required:
+        - username
+        - court_id
+        - start
+        - end
+      type: object
+
 info:
   title: Book Your Court API documentation
   version: 1.0.0
@@ -342,9 +354,11 @@ paths:
           description: DELETE method required
         '409':
           description: Sport not found
-  /courts/:
+  /sports/{sport_name}/courts/:
     post:
       description: add new court
+      parameters:
+        - $ref: '#/components/parameters/sport_name'
       requestBody:
         description: JSON for a new court
         content:
@@ -365,20 +379,6 @@ paths:
           description: Incomplete request - missing fields
         '405':
           description: POST method required
-  /sports/{sport_name}/courts/{court_no}/:
-    delete:
-      description: Delete all records of a court (which is not maintained anymore)
-      parameters:
-        - $ref: '#/components/parameters/sport_name'
-        - $ref: '#/components/parameters/court_no'
-      responses:
-        '200':
-          description: Deleted successfully
-        '405':
-          description: DELETE method required
-        '409':
-          description: Sport or court not found
-  /sports/{sport_name}/courts/{input_date}:
     get:
       description: Get details of all courts on a sport for the selected date
       parameters:
@@ -403,14 +403,34 @@ paths:
           description: GET method required
         '409':
           description: Invalid sport or input date
-  /sports/{sport_name}/courts/{input_date}/{court_no}/:
+  /sports/{sport_name}/courts/{court_no}/:
+    delete:
+      description: Delete all records of a court (which is not maintained anymore)
+      parameters:
+        - $ref: '#/components/parameters/sport_name'
+        - $ref: '#/components/parameters/court_no'
+      responses:
+        '200':
+          description: Deleted successfully
+        '405':
+          description: DELETE method required
+        '409':
+          description: Sport or court not found
     put:
       description: Edit freeslot of a court after user confirmation
       parameters:
         - $ref: '#/components/parameters/sport_name'
-        - $ref: '#/components/parameters/input_date'
         - $ref: '#/components/parameters/court_no'
-        - $ref: '#/components/parameters/chosen_time'
+      requestBody:
+        description: JSON for a updating freeslot of a court
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Freeslot'
+            example:
+              date: "2022-03-18"
+              start: "15:00"
+              end: "18:00"
       responses:
         '200':
           description: Court updated successfully
@@ -467,7 +487,7 @@ paths:
         '401':
           description: Incomplete request - missing fields
         '405':
-          description: POST method required 
+          description: POST method required
   /reservations/{book_id}:
     delete:
       description: Delete user by booking id
