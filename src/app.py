@@ -19,6 +19,7 @@ from datetime import date, datetime
 from sqlalchemy import and_, or_
 from werkzeug.exceptions import NotFound
 from werkzeug.routing import BaseConverter
+from flasgger import Swagger, swag_from
 
 app = Flask(__name__)
 api = Api(app)
@@ -34,6 +35,15 @@ app.config['MAIL_PASSWORD'] = 'NguyenYadav@199x'
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 mail = Mail(app)
+
+
+# ... SQLAlchemy and Caching setup omitted from here
+app.config["SWAGGER"] = {
+    "title": "Book Your Court API",
+    "openapi": "3.0.3",
+    "uiversion": 3,
+}
+swagger = Swagger(app, template_file="doc/BYC_Open_API_Doc.yaml")
 
 
 @event.listens_for(Engine, "connect")
@@ -482,33 +492,33 @@ def populate_db():
 def to_date(date_string):
     return datetime.strptime(date_string, "%Y-%m-%d").date()
 
-
-@click.command("init-db")
-@with_appcontext
-def init_db_cmd():
-    if not os.path.exists("../src/*.db"):
-        db.create_all()
-
-
-@click.command("delete-db")
-@with_appcontext
-def delete_db_cmd():
-    db.drop_all()
-
-
-@click.command("populate-db")
-@with_appcontext
-def populate_db_cmd():
-    populate_db()
-
-
-app.cli.add_command(init_db_cmd)
-app.cli.add_command(delete_db_cmd)
-app.cli.add_command(populate_db_cmd)
+#
+# @click.command("init-db")
+# @with_appcontext
+# def init_db_cmd():
+#     if not os.path.exists("../src/*.db"):
+#         db.create_all()
+#
+#
+# @click.command("delete-db")
+# @with_appcontext
+# def delete_db_cmd():
+#     db.drop_all()
+#
+#
+# @click.command("populate-db")
+# @with_appcontext
+# def populate_db_cmd():
+#     populate_db()
 
 
-db.create_all()
-populate_db()
+# app.cli.add_command(init_db_cmd)
+# app.cli.add_command(delete_db_cmd)
+# app.cli.add_command(populate_db_cmd)
+
+
+# db.create_all()
+# populate_db()
 
 
 api.add_resource(UserCollection, "/api/users/")

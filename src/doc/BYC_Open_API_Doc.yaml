@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.0
+openapi: 3.0.3
 servers:
 - url: /api
 components:
@@ -11,10 +11,10 @@ components:
       required: true
       schema:
         type: string
-    sport_name:
+    sport:
       description: Sport name
       in: path
-      name: sport_name
+      name: sport
       required: true
       schema:
         type: string
@@ -78,7 +78,7 @@ components:
       type: object
     Court:
       properties:
-        sport_name:
+        sport:
           description: Sport name
           type: string
         court_no:
@@ -91,7 +91,7 @@ components:
           description: Available time slots for a court
           type: string
       required:
-      - sport_name
+      - sport
       - court_no
       - date
       type: object
@@ -154,7 +154,6 @@ components:
         - start
         - end
       type: object
-
 info:
   title: Book Your Court API documentation
   version: 1.0.0
@@ -342,11 +341,11 @@ paths:
           description: Incomplete request - missing fields
         '405':
           description: POST method required
-  /sports/{sport_name}:
+  /sports/{sport}:
     delete:
       description: Delete sport by sport name
       parameters:
-        - $ref: '#/components/parameters/sport_name'
+        - $ref: '#/components/parameters/sport'
       responses:
         '200':
           description: Deleted successfully
@@ -354,11 +353,11 @@ paths:
           description: DELETE method required
         '409':
           description: Sport not found
-  /sports/{sport_name}/courts/:
+  /sports/{sport}/courts/:
     post:
       description: add new court
       parameters:
-        - $ref: '#/components/parameters/sport_name'
+        - $ref: '#/components/parameters/sport'
       requestBody:
         description: JSON for a new court
         content:
@@ -382,7 +381,7 @@ paths:
     get:
       description: Get details of all courts on a sport for the selected date
       parameters:
-        - $ref: '#/components/parameters/sport_name'
+        - $ref: '#/components/parameters/sport'
         - $ref: '#/components/parameters/input_date'
       responses:
         '200':
@@ -403,11 +402,11 @@ paths:
           description: GET method required
         '409':
           description: Invalid sport or input date
-  /sports/{sport_name}/courts/{court_no}/:
+  /sports/{sport}/courts/{court_no}/:
     delete:
       description: Delete all records of a court (which is not maintained anymore)
       parameters:
-        - $ref: '#/components/parameters/sport_name'
+        - $ref: '#/components/parameters/sport'
         - $ref: '#/components/parameters/court_no'
       responses:
         '200':
@@ -419,7 +418,7 @@ paths:
     put:
       description: Edit freeslot of a court after user confirmation
       parameters:
-        - $ref: '#/components/parameters/sport_name'
+        - $ref: '#/components/parameters/sport'
         - $ref: '#/components/parameters/court_no'
       requestBody:
         description: JSON for a updating freeslot of a court
