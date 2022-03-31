@@ -3,6 +3,8 @@ import datetime
 import os.path
 import time
 import click
+import requests
+import json
 from flask.cli import with_appcontext
 import sqlalchemy.types
 from flask import Flask, make_response
@@ -35,7 +37,6 @@ app.config['MAIL_PASSWORD'] = 'NguyenYadav@199x'
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 mail = Mail(app)
-
 
 # ... SQLAlchemy and Caching setup omitted from here
 app.config["SWAGGER"] = {
@@ -349,7 +350,7 @@ class ReservationCollection(Resource):
             #        for r in Reservation.query.filter(Reservation.username == username).all()]
             reservation_list = Reservation.query.filter(Reservation.username == username).all()
             value = {
-                 "reservations": []
+                "reservations": []
             }
             for r in reservation_list:
                 value["reservations"].append({"court_id": r.court_id, "start": r.start, "end": r.end})
@@ -389,7 +390,9 @@ def login():
     try:
         user = User.query.filter_by(username=uname).first()
         if user.pwd == request.form.get('log-pwd'):
-            return render_template("booking_check_confirm.html")
+            res_content, is_free_dict = retrieve_schedule("badminton", "2022-03-18")
+            return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict,
+                                   n_court=len(res_content["courts"]))
         else:
             return "Wrong username or password. Please try again!", 409
     except Exception as e:
@@ -414,6 +417,23 @@ def resend_pwd():
         return render_template('index.html')
     except Exception as e:
         return str(e), 500
+
+
+def retrieve_schedule(sport_name, input_date):
+    query = requests.get("http://127.0.0.1:5000/api/sports/{}/courts/?date={}".format(sport_name, input_date))
+    content = json.loads(query.content.decode())
+    full = "8:00,9:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00".split(",")
+    is_free_dict = {}
+    for idx in range(len(full) - 1):
+        is_free_dict[full[idx] + "-" + full[idx + 1]] = [True] * len(content['courts'])
+    for idx in range(len(content["courts"])):
+        slot_split = content['courts'][idx]["free_slots"].split(",")
+        booked = [x for x in full if x not in slot_split]
+        for b in booked:
+            b_split = int(b.split(":")[0])
+            book_key = "{}:00-{}:00".format(b_split, b_split + 1)
+            is_free_dict[book_key][idx] = False
+    return content, is_free_dict
 
 
 def populate_db():
@@ -492,34 +512,29 @@ def populate_db():
 def to_date(date_string):
     return datetime.strptime(date_string, "%Y-%m-%d").date()
 
-#
-# @click.command("init-db")
-# @with_appcontext
-# def init_db_cmd():
-#     if not os.path.exists("../src/*.db"):
-#         db.create_all()
-#
-#
-# @click.command("delete-db")
-# @with_appcontext
-# def delete_db_cmd():
-#     db.drop_all()
-#
-#
-# @click.command("populate-db")
-# @with_appcontext
-# def populate_db_cmd():
-#     populate_db()
+
+@click.command("init-db")
+@with_appcontext
+def init_db_cmd():
+    if not os.path.exists("../src/*.db"):
+        db.create_all()
 
 
-# app.cli.add_command(init_db_cmd)
-# app.cli.add_command(delete_db_cmd)
-# app.cli.add_command(populate_db_cmd)
+@click.command("delete-db")
+@with_appcontext
+def delete_db_cmd():
+    db.drop_all()
 
 
-# db.create_all()
-# populate_db()
+@click.command("populate-db")
+@with_appcontext
+def populate_db_cmd():
+    populate_db()
 
+
+app.cli.add_command(init_db_cmd)
+app.cli.add_command(delete_db_cmd)
+app.cli.add_command(populate_db_cmd)
 
 api.add_resource(UserCollection, "/api/users/")
 api.add_resource(SportCollection, "/api/sports/")

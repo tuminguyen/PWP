@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>BYC - Book Your Court</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/bootstrap.min.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/unicons.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/index.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/schedule.css')}}">
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-1.12.0.min.js')}}"></script>
+</head>
+<body>
+    <div class="logo-wrap">
+        <img src="https://raw.githubusercontent.com/tuminguyen/PWP/master/src/static/img/BYC_logo.jpg">
+        <h1>Book Your Court Today!</h1>
+    </div>
+    <div class="section">
+        <div class="container">
+            <div class="row full-height justify-content-center">
+                <div class="col-12">
+                    <div class="section text-center">
+                        <div class="topnav tab-sport-item">
+                            <a name="submit-btn" href="#" onclick="badminton()" class="link active">Badminton</a>
+                            <a name="submit-btn" href="#" onclick="basketball()" class="link">Basketball</a>
+                            <a name="submit-btn" href="#" onclick="tennis()" class="link">Tennis</a>
+                        </div>
+                        <div class="topnav tab-7d">
+                        </div>
+                        <div class="schedule-table">
+                            <table>
+                                <tr>
+                                    <th class="time"></th>
+                                    {% for c in query.courts %}
+                                        <th> {{c.court_no}} </th>
+                                    {% endfor %}
+                                </tr>
+                                <tr class="row-gap">
+                                    <td class="time"></td>
+                                    <td colspan="{{n_court}}"></td>
+                                </tr>
+                                {% for s_key, s_value in slots_in_dict.items() %}
+                                    <tr>
+                                        <td class="time no-blank">{{ s_key }}</td>
+                                        {% for idx in range(n_court) %}
+                                            {% if s_value[idx] %}
+                                                <td class="free">{{ s_value[idx] }}</td>
+                                            {% else %}
+                                                <td class="booked">{{ s_value[idx] }}</td>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="copy-right">
+        <span>Copyright © 2022 tuminguyen</span>
+    </div>
+</body>
+</html>
