@@ -23,38 +23,42 @@
                 <div class="col-12">
                     <div class="section text-center">
                         <div class="topnav tab-sport-item">
-                            <a name="submit-btn" href="#" onclick="badminton()" class="link active">Badminton</a>
-                            <a name="submit-btn" href="#" onclick="basketball()" class="link">Basketball</a>
-                            <a name="submit-btn" href="#" onclick="tennis()" class="link">Tennis</a>
+                            <a name="link-bad" href="/booking/badminton" onclick="badminton_retrieve()" class="link active">Badminton</a>
+                            <a name="link-bas" href="/booking/basketball" onclick="basketball_retrieve()" class="link">Basketball</a>
+                            <a name="link-ten" href="/booking/tennis" onclick="tennis_retrieve()" class="link">Tennis</a>
                         </div>
                         <div class="topnav tab-7d">
                         </div>
                         <div class="schedule-table">
-                            <table>
-                                <tr>
-                                    <th class="time"></th>
-                                    {% for c in query.courts %}
-                                        <th> {{c.court_no}} </th>
-                                    {% endfor %}
-                                </tr>
-                                <tr class="row-gap">
-                                    <td class="time"></td>
-                                    <td colspan="{{n_court}}"></td>
-                                </tr>
-                                {% for s_key, s_value in slots_in_dict.items() %}
+                            <form action="/confirm-booking" method="POST">
+                                <table>
                                     <tr>
-                                        <td class="time no-blank">{{ s_key }}</td>
-                                        {% for idx in range(n_court) %}
-                                            {% if s_value[idx] %}
-                                                <td class="free">{{ s_value[idx] }}</td>
-                                            {% else %}
-                                                <td class="booked">{{ s_value[idx] }}</td>
-                                            {% endif %}
+                                        <th class="time"></th>
+                                        {% for c in query.courts %}
+                                            <th> {{c.court_no}} </th>
                                         {% endfor %}
-
                                     </tr>
-                                {% endfor %}
-                            </table>
+                                    <tr class="row-gap">
+                                        <td class="time"></td>
+                                        <td colspan="{{n_court}}"></td>
+                                    </tr>
+                                    {% for s_key, s_value in slots_in_dict.items() %}
+                                        <tr>
+                                            <td class="time no-blank">{{ s_key }}</td>
+                                            {% for idx in range(n_court) %}
+                                                {% if s_value[idx] %}
+                                                    <td class="free">
+                                                        <input class='td-btn btn' type='submit' name="slot"
+                                                               value="{{s_key}}-C{{idx+1}}"/>
+                                                    </td>
+                                                {% else %}
+                                                    <td class="booked">Booked</td>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+                            </form>
                         </div>
                     </div>
                 </div>

@@ -18,13 +18,15 @@
 }
 
 .topnav a.active {
-  background-color: #04AA6D;
+  background-color: #102770;
   color: white;
 }
 
 table {
     margin: 100px auto;
     border: 1px solid white;
+    border-collapse: separate;
+    border-spacing: 7px;
 }
 
 table th{
@@ -44,10 +46,29 @@ table .no-blank {
     height: 80px;
 }
 
+input[name="input_date"] {
+    background: transparent;
+    border: none;
+}
+
+tbody {
+    color: white;;
+}
+
 td {
     border: 1px solid white;
 }
 
-.free {
-    background: green;
+.booked {
+    text-transform: uppercase;
+    background: #333;
+    font-size: 13px;
 }
+
+
+.td-btn {
+    width: 100%;
+    height: 80px;
+    border-radius: 0;
+}
+

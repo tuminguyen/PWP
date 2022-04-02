@@ -384,19 +384,57 @@ def index():
     return render_template('index.html')
 
 
-@app.route("/login", methods=['POST'])
+@app.route("/booking/booking-front", methods=['POST'])
 def login():
     uname = request.form.get('log-name')
     try:
         user = User.query.filter_by(username=uname).first()
         if user.pwd == request.form.get('log-pwd'):
+            input_date = "2022-03-18"
             res_content, is_free_dict = retrieve_schedule("badminton", "2022-03-18")
             return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict,
-                                   n_court=len(res_content["courts"]))
+                                   n_court=len(res_content["courts"]), input_date=input_date)
         else:
             return "Wrong username or password. Please try again!", 409
     except Exception as e:
         return str(e), 500
+
+
+# Need to be updated
+@app.route("/confirm-booking", methods=['POST'])
+def confirm_booking():
+    time_slot = request.form.get('slot').split("-")
+    start = time_slot[0]
+    end = time_slot[1]
+    court = time_slot[-1]
+    return render_template('booking_check_confirm.html', start=start, end=end, court=court)
+
+
+# Need to be updated
+@app.route("/booking/badminton", methods=['GET'])
+def badminton_retrieve():
+    input_date = "2022-03-18"
+    res_content, is_free_dict = retrieve_schedule("badminton", input_date)
+    return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict,
+                           n_court=len(res_content["courts"]), input_date=input_date)
+
+
+# Need to be updated
+@app.route("/booking/basketball", methods=['GET'])
+def basketball_retrieve():
+    input_date = "2022-03-18"
+    res_content, is_free_dict = retrieve_schedule("basketball", input_date)
+    return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict,
+                           n_court=len(res_content["courts"]), input_date=input_date)
+
+
+# Need to be updated
+@app.route("/booking/tennis", methods=['GET'])
+def tennis_retrieve():
+    input_date = "2022-03-18"
+    res_content, is_free_dict = retrieve_schedule("tennis", input_date)
+    return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict,
+                           n_court=len(res_content["courts"]), input_date=input_date)
 
 
 @app.route("/forgot-password", methods=['GET'])
@@ -436,6 +474,7 @@ def retrieve_schedule(sport_name, input_date):
     return content, is_free_dict
 
 
+# Need to change date from today
 def populate_db():
     """
     Auto generate sport and courts
