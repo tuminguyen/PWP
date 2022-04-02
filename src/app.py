@@ -411,28 +411,10 @@ def confirm_booking():
 
 
 # Need to be updated
-@app.route("/booking/badminton", methods=['GET'])
-def badminton_retrieve():
+@app.route("/booking/<sport>/", methods=['GET'])
+def basketball_retrieve(sport):
     input_date = "2022-03-18"
-    res_content, is_free_dict = retrieve_schedule("badminton", input_date)
-    return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict,
-                           n_court=len(res_content["courts"]), input_date=input_date)
-
-
-# Need to be updated
-@app.route("/booking/basketball", methods=['GET'])
-def basketball_retrieve():
-    input_date = "2022-03-18"
-    res_content, is_free_dict = retrieve_schedule("basketball", input_date)
-    return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict,
-                           n_court=len(res_content["courts"]), input_date=input_date)
-
-
-# Need to be updated
-@app.route("/booking/tennis", methods=['GET'])
-def tennis_retrieve():
-    input_date = "2022-03-18"
-    res_content, is_free_dict = retrieve_schedule("tennis", input_date)
+    res_content, is_free_dict = retrieve_schedule(sport, input_date)
     return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict,
                            n_court=len(res_content["courts"]), input_date=input_date)
 
