@@ -37,11 +37,11 @@ def client():
 
 
 def _populate_db():
-    for idx, letter in enumerate("ABC", start=1):
+    for idx in range(1, 4):
         user = User(
-            username=f"User{letter}",
-            pwd="",
-            email=f"user.{letter}@gmail.com"
+            username=f"User{idx}",
+            pwd=f"Testuser35352!{idx}",
+            email=f"testuser{idx}@gmail.com"
         )
         sport = Sport(
             name=f"test-sport-{idx}"
@@ -69,15 +69,23 @@ def _populate_db():
 
 def _get_user_json(number=1):
     """
-    Creates a valid sensor JSON object to be used for PUT and POST tests.
+    Creates a valid JSON object to be used for POST tests for UserCollection.
     """
 
-    return {"username": "User{}".format(number), "pwd": "Testu3434!", "email": "test.user@gmail.com"}
+    return {"username": "User{}".format(number), "pwd": "Testu3434!", "email": "test.userx@gmail.com"}
+
+
+def _get_user_item_json():
+    """
+    Creates a valid JSON object to be used for PUT test for UserItem.
+    """
+
+    return {"pwd": "Testu3434!", "email": "test.userx@gmail.com", "fname": "Bhim", "lname": "Nage"}
 
 
 class TestUserCollection(object):
     """
-    This class implements tests for each HTTP method in sensor collection
+    This class implements tests for each HTTP method in UserCollection
     resource.
     """
 
@@ -127,4 +135,216 @@ class TestUserCollection(object):
         assert resp.status_code == 400
 
 
+class TestUserItem(object):
+    """
+    This class implements tests for each HTTP method in UserItem
+    resource.
+    """
+
+    RESOURCE_URL = "/api/users/User1/"
+    DIFFERENT_USER_URL = "/api/users/User18/"
+
+    def test_get(self, client):
+        """
+        Tests the GET method. Checks that the response status code is 200, and
+        then checks that all of the expected attributes and controls are
+        present, and the controls work. Also checks that all of the items from
+        the DB popluation are present, and their controls.
+        """
+
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert body["username"] == "User1"
+        assert body["email"] == "testuser1@gmail.com"
+
+    def test_put(self, client):
+        """
+        Tests the PUT method. Checks all of the possible error codes, and also
+        checks that a valid request receives a 204 response. Also tests that
+        when name is changed, the sensor can be found from a its new URI.
+        """
+
+        valid = _get_user_item_json()
+
+        # test with wrong content type
+        resp = client.put(self.RESOURCE_URL, data=json.dumps(valid))
+        assert resp.status_code == 415
+
+        # test with another user's name
+        resp = client.put(self.DIFFERENT_USER_URL, json=valid)
+        assert resp.status_code == 404
+
+        # test with valid (only change model)
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 204
+
+    def test_delete(self, client):
+        """
+        Tests the DELETE method. Checks that a valid request receives 204
+        response and that trying to GET the sensor afterwards results in 404.
+        Also checks that trying to delete a sensor that doesn't exist results
+        in 404.
+        """
+
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 201
+
+        # test with another user's name
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 404
+
+
+class TestSportCollection(object):
+    """
+    This class implements tests for each HTTP method in SportCollection
+    resource.
+    """
+
+    RESOURCE_URL = "/api/sports/"
+
+    def test_get(self, client):
+        """
+        Tests the GET method. Checks that the response status code is 200, and
+        then checks that all of the expected attributes and controls are
+        present, and the controls work. Also checks that all of the items from
+        the DB popluation are present, and their controls.
+        """
+
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 3
+        for item in body:
+            assert "name" in item
+            assert "courts" in item
+
+    def test_post(self, client):
+        """
+        Tests the POST method. Checks all of the possible error codes, and
+        also checks that a valid request receives a 201 response with a
+        location header that leads into the newly created resource.
+        """
+
+        valid = {"name": "test-sport-4"}
+
+        # test with wrong content type
+        resp = client.post(self.RESOURCE_URL, data=json.dumps(valid))
+        assert resp.status_code == 415
+
+        # test with valid and see that it exists afterward
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 201
+
+        # send same data again for 409
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 409
+
+        # remove model field for 400
+        valid.pop("name")
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400
+
+
+class TestSportItem(object):
+    """
+    This class implements tests for each HTTP method in SportItem
+    resource.
+    """
+
+    RESOURCE_URL = "/api/sports/test-sport-1/"
+
+    def test_delete(self, client):
+        """
+        Tests the DELETE method. Checks that a valid request receives 204
+        response and that trying to GET the sensor afterwards results in 404.
+        Also checks that trying to delete a sensor that doesn't exist results
+        in 404.
+        """
+
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 201
+
+        # send delete request again for same sport
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 404
+
+
+class TestReservationCollection(object):
+    """
+    This class implements tests for each HTTP method in ReservationCollection
+    resource.
+    """
+
+    RESOURCE_URL = "/api/reservations/User1/"
+
+    def test_get(self, client):
+        """
+        Tests the GET method. Checks that the response status code is 200, and
+        then checks that all of the expected attributes and controls are
+        present, and the controls work. Also checks that all of the items from
+        the DB popluation are present, and their controls.
+        """
+
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 1
+        for item in body:
+            assert "reservations" in item
+            for val in body[item]:
+                assert "book_id" in val
+                assert "start" in val
+                assert "end" in val
+                assert "court_info" in val
+
+    def test_post(self, client):
+        """
+        Tests the POST method. Checks all of the possible error codes, and
+        also checks that a valid request receives a 201 response with a
+        location header that leads into the newly created resource.
+        """
+
+        valid = {"court_id": 1, "start": "8:00", "end": "10:00"}
+
+        # test with wrong content type
+        resp = client.post(self.RESOURCE_URL, data=json.dumps(valid))
+        assert resp.status_code == 415
+
+        # test with valid and see that it exists afterward
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 201
+
+        # send same data again for 409
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 409
+
+        # remove model field for 400
+        valid.pop("court_id")
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400
+
+
+class TestReservationById(object):
+    """
+    This class implements tests for each HTTP method in ReservationById
+    resource.
+    """
+
+    RESOURCE_URL = "/api/reservations/1/"
+
+    def test_delete(self, client):
+        """
+        Tests the DELETE method. Checks that a valid request receives 204
+        response and that trying to GET the sensor afterwards results in 404.
+        Also checks that trying to delete a sensor that doesn't exist results
+        in 404.
+        """
+
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 201
+
+        # send delete request again for same sport
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 409
 

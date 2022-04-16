@@ -77,7 +77,7 @@ class User(db.Model):
         if display_all:
             doc["reservations"] = []
             for r in self.reservations:
-                doc["reservations"].append(r.serialize(display_all=False))
+                doc["reservations"].append(r.serialize(short_form=False))
         return doc
 
 
@@ -203,7 +203,7 @@ class UserCollection(Resource):
 class UserItem(Resource):
     def get(self, user):
         if request.method == 'GET':
-            user = User.query(username=user).first()
+            user = User.query.filter(User.username == user.username).first()
             return user.serialize(display_all=True), 200
         return "GET method required", 405
 
@@ -215,9 +215,10 @@ class UserItem(Resource):
             # user_uri = api.url_for(UserItem, user=user)
             user_list = [u.username for u in User.query.all()]
             if user.username not in user_list:
-                return "User doesn't exists", 409
+                return "User not found", 404
             else:
-                User.query.filter(User.username == user.username).delete()
+                db_user = User.query.filter_by(username=user.username).first()
+                db.session.delete(db_user)
                 db.session.commit()
                 return "Deleted successfully", 201
 
@@ -225,30 +226,35 @@ class UserItem(Resource):
         if request.method != 'PUT':
             return "PUT method required", 405
         data = request.get_json()
-        u = User.query.filter(User.username == user.username).first()
-        if 'username' in data:
-            username = data['username']
-            u.username = username
-        if 'pwd' in data:
-            pwd = data['pwd']
-            u.pwd = pwd
-        if 'email' in data:
-            email = data['email']
-            u.email = email
-        if 'fname' in data:
-            fname = data['fname']
-            u.fname = fname
-        if 'lname' in data:
-            lname = data['lname']
-            u.lname = lname
-        if 'addr' in data:
-            addr = data['addr']
-            u.addr = addr
-        if 'phone' in data:
-            phone = data['phone']
-            u.phone = phone
-        db.session.commit()
-        return "Updated user profile", 204
+
+        if data is not None:
+            user_list = [u.username for u in User.query.all()]
+            if user.username not in user_list:
+                return "User doesn't exists", 404
+            else:
+                u = User.query.filter(User.username == user.username).first()
+                if 'pwd' in data:
+                    pwd = data['pwd']
+                    u.pwd = pwd
+                if 'email' in data:
+                    email = data['email']
+                    u.email = email
+                if 'fname' in data:
+                    fname = data['fname']
+                    u.fname = fname
+                if 'lname' in data:
+                    lname = data['lname']
+                    u.lname = lname
+                if 'addr' in data:
+                    addr = data['addr']
+                    u.addr = addr
+                if 'phone' in data:
+                    phone = data['phone']
+                    u.phone = phone
+                db.session.commit()
+                return "Updated user profile", 204
+        else:
+            return "Request content type must be JSON", 415
 
 
 class SportCollection(Resource):
@@ -290,9 +296,11 @@ class SportItem(Resource):
             # sport_uri = api.url_for(SportItem, sport=sport)
             sport_list = [s.name.lower() for s in Sport.query.all()]
             if sport.name.lower() not in sport_list:
-                return "Sport doesn't exists", 409
+                return "Sport not found", 404
             else:
-                Sport.query.filter(Sport.name == sport.name).delete()
+                # Sport.query.filter(Sport.name == sport.name).delete()
+                db_sport = Sport.query.filter_by(name=sport.name).first()
+                db.session.delete(db_sport)
                 db.session.commit()
                 return "Deleted successfully", 201
 
@@ -305,7 +313,7 @@ class CourtCollection(Resource):
         # print(sport)
         sport_name = sport.name
         if data is not None:
-            if 'court_no' and 'date' and 'free_slots' in data:
+            if 'court_no' in data and 'date' in data and 'free_slots' in data:
                 court_no = data['court_no']
                 court_date = data['date']
                 court_date = to_date(court_date)
@@ -323,7 +331,7 @@ class CourtCollection(Resource):
                     db.session.add(court)
                     db.session.commit()
                     return "Court added successfully", 201
-            elif 'court_no' and 'date' in data:
+            elif 'court_no' in data and 'date' in data:
                 court_no = data['court_no']
                 court_date = data['date']
                 court_date = to_date(court_date)
@@ -385,25 +393,28 @@ class CourtItem(Resource):
             return "PUT method required", 405
         data = request.get_json()
         sport_name = sport.name
-        input_date = data['date']
-        start_time = data['start']
-        end_time = data['end']
-        court = Court.query.filter(and_(Court.sport_name == sport_name, Court.date == to_date(input_date),
-                                        Court.court_no == court_no)).first()
-        slot = court.free_slots
-        if start_time not in slot:
-            return "Time slot not available for the date", 409
+        if data is not None:
+            input_date = data['date']
+            start_time = data['start']
+            end_time = data['end']
+            court = Court.query.filter(and_(Court.sport_name == sport_name, Court.date == to_date(input_date),
+                                            Court.court_no == court_no)).first()
+            slot = court.free_slots
+            if start_time not in slot:
+                return "Time slot not available for the date", 409
+            else:
+                start = start_time.replace(":00", "")
+                end = end_time.replace(":00", "")
+                time_range = int(end) - int(start)
+                str_to_replace = ""
+                for t in range(time_range):
+                    str_to_replace = str_to_replace + str(int(start) + t) + ":00,"
+                slot_updated = slot.replace(str_to_replace, "")
+                court.free_slots = slot_updated
+                db.session.commit()
+                return "Updated free slots for the record", 204
         else:
-            start = start_time.replace(":00", "")
-            end = end_time.replace(":00", "")
-            time_range = int(end) - int(start)
-            str_to_replace = ""
-            for t in range(time_range):
-                str_to_replace = str_to_replace + str(int(start) + t) + ":00,"
-            slot_updated = slot.replace(str_to_replace, "")
-            court.free_slots = slot_updated
-            db.session.commit()
-            return "Updated free slots for the record", 204
+            return "Request content type must be JSON", 415
 
 
 class ReservationCollection(Resource):
@@ -434,7 +445,7 @@ class ReservationCollection(Resource):
             return "POST method required", 405
         data = request.get_json()
         if data is not None:
-            if 'court_id' and 'start' and 'end' in data:
+            if 'court_id' in data and 'start' in data and 'end' in data:
                 court_id = data['court_id']
                 start = data['start']
                 end = data['end']
@@ -466,9 +477,11 @@ class ReservationById(Resource):
         else:
             book_id_list = [r.id for r in Reservation.query.all()]
             if book_id not in book_id_list:
-                return "Sport doesn't exists", 409
+                return "Booking Id doesn't exists", 409
             else:
-                Reservation.query.filter(Reservation.id == book_id).delete()
+                # Reservation.query.filter(Reservation.id == book_id).delete()
+                db_reserve = Reservation.query.filter_by(id=book_id).first()
+                db.session.delete(db_reserve)
                 db.session.commit()
                 return "Deleted successfully", 201
 
