@@ -203,6 +203,9 @@ class UserCollection(Resource):
 class UserItem(Resource):
     def get(self, user):
         if request.method == 'GET':
+            user_list = [u.username for u in User.query.all()]
+            if user.username not in user_list:
+                return "User not found", 404
             user = User.query.filter(User.username == user.username).first()
             return user.serialize(display_all=True), 200
         return "GET method required", 405
@@ -280,7 +283,7 @@ class SportCollection(Resource):
                     )
                     db.session.add(sport)
                     db.session.commit()
-                    return "", 201
+                    return "New sport successfully added", 201
             else:
                 return "Incomplete request - missing fields", 400
         else:

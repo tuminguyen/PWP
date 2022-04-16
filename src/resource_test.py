@@ -158,6 +158,9 @@ class TestUserItem(object):
         assert body["username"] == "User1"
         assert body["email"] == "testuser1@gmail.com"
 
+        resp = client.get(self.DIFFERENT_USER_URL)
+        assert resp.status_code == 404
+
     def test_put(self, client):
         """
         Tests the PUT method. Checks all of the possible error codes, and also
