@@ -1,5 +1,5 @@
 # This is where we define the APIs and redirect/call to display the corresponding HTML pages
-import datetime
+import datetime as dt
 import os.path
 import time
 import click
@@ -67,13 +67,14 @@ class User(db.Model):
     def serialize(self, display_all=False):
         doc = {
             "username": self.username,
+            "pwd": self.pwd,
             "first_name": self.fname,
             "last_name": self.lname,
             "phone": self.phone,
-            "email": self.email
+            "email": self.email,
+            "address": self.addr
         }
         if display_all:
-            doc["address"] = self.addr
             doc["reservations"] = []
             for r in self.reservations:
                 doc["reservations"].append(r.serialize(display_all=False))
@@ -150,42 +151,104 @@ class UserCollection(Resource):
     def post(self):
         if request.method != 'POST':
             return "POST method required", 405
-        id = request.form.get('sign-name')
-        pwd = request.form.get('sign-pwd')
-        email = request.form.get('sign-email')
-        user_list_id = [u.username for u in User.query.all()]
-        user_list_email = [u.email for u in User.query.all()]
-        if id in user_list_id:
-            return "Username already used by others", 409
-        elif email in user_list_email:
-            return "Email has been registered by other user. Please use another.", 409
+        data = request.get_json()
+        if data is not None:
+            if 'name' and 'pwd' and 'email' in data:
+                username = data['username']
+                pwd = data['pwd']
+                email = data['email']
+                user_list_id = [u.username for u in User.query.all()]
+                user_list_email = [u.email for u in User.query.all()]
+                if username in user_list_id:
+                    return "Username already used by others", 409
+                elif email in user_list_email:
+                    return "Email has been registered by other user. Please use another.", 409
+                else:
+                    phone = ''
+                    addr = ''
+                    fname = ''
+                    lname = ''
+                    if 'phone' in data:
+                        phone = data['phone']
+                    if 'address' in data:
+                        addr = data['addr']
+                    if 'fname' in data:
+                        fname = data['fname']
+                    if 'lname' in data:
+                        lname = data['lname']
+                    user = User(
+                        username=username,
+                        pwd=pwd,
+                        fname=fname,
+                        lname=lname,
+                        phone=phone,
+                        addr=addr,
+                        email=email
+                    )
+                    db.session.add(user)
+                    db.session.commit()
+                    msg = Message('BYC - Confirm your new account',
+                                  sender='bookyourcourt.info@gmail.com',
+                                  recipients=[email])
+                    msg.html = render_template('mail_confirm_account.html')
+                    mail.send(msg)
+                    return make_response(render_template('after_signup.html'), 201)
+            else:
+                return "Incomplete request - missing fields", 400
         else:
-            user = User(
-                username=id,
-                pwd=pwd,
-                fname='',
-                lname='',
-                phone='',
-                addr='',
-                email=email
-            )
-            db.session.add(user)
-            db.session.commit()
-            msg = Message('BYC - Confirm your new account',
-                          sender='bookyourcourt.info@gmail.com',
-                          recipients=[email])
-            msg.html = render_template('mail_confirm_account.html')
-            mail.send(msg)
-            return make_response(render_template('after_signup.html'), 200)
+            return "Request content type must be JSON", 415
 
 
-# edit delete needs to be added
+# recheck put method for pwd and email
 class UserItem(Resource):
     def get(self, user):
         if request.method == 'GET':
             user = User.query(username=user).first()
             return user.serialize(display_all=True), 200
         return "GET method required", 405
+
+    def delete(self, user):
+        if request.method != 'DELETE':
+            return "DELETE method required", 405
+        else:
+            # print(user)
+            # user_uri = api.url_for(UserItem, user=user)
+            user_list = [u.username for u in User.query.all()]
+            if user.username not in user_list:
+                return "User doesn't exists", 409
+            else:
+                User.query.filter(User.username == user.username).delete()
+                db.session.commit()
+                return "Deleted successfully", 201
+
+    def put(self, user):
+        if request.method != 'PUT':
+            return "PUT method required", 405
+        data = request.get_json()
+        u = User.query.filter(User.username == user.username).first()
+        if 'username' in data:
+            username = data['username']
+            u.username = username
+        if 'pwd' in data:
+            pwd = data['pwd']
+            u.pwd = pwd
+        if 'email' in data:
+            email = data['email']
+            u.email = email
+        if 'fname' in data:
+            fname = data['fname']
+            u.fname = fname
+        if 'lname' in data:
+            lname = data['lname']
+            u.lname = lname
+        if 'addr' in data:
+            addr = data['addr']
+            u.addr = addr
+        if 'phone' in data:
+            phone = data['phone']
+            u.phone = phone
+        db.session.commit()
+        return "Updated user profile", 204
 
 
 class SportCollection(Resource):
@@ -349,22 +412,65 @@ class ReservationCollection(Resource):
             # res = [r.serialize(short_form=False)
             #        for r in Reservation.query.filter(Reservation.username == username).all()]
             reservation_list = Reservation.query.filter(Reservation.username == username).all()
+
             value = {
                 "reservations": []
             }
             for r in reservation_list:
-                value["reservations"].append({"court_id": r.court_id, "start": r.start, "end": r.end})
+                court = Court.query.filter(Court.id == r.court_id).first()
+                value["reservations"].append({"book_id": r.id,
+                                              "start": r.start,
+                                              "end": r.end,
+                                              "court_info": {"court_id": court.court_no,
+                                                             "date": str(court.date),
+                                                             "sport": court.sport_name}
+                                              })
 
             return value, 200
         return "GET method required", 405
 
-    def post(self):
-        pass
+    def post(self, username):
+        if request.method != 'POST':
+            return "POST method required", 405
+        data = request.get_json()
+        if data is not None:
+            if 'court_id' and 'start' and 'end' in data:
+                court_id = data['court_id']
+                start = data['start']
+                end = data['end']
+                sport_court_list = [[r.court_id, r.start, r.end]
+                                    for r in Reservation.query.filter(Reservation.username == username).all()]
+                print(sport_court_list)
+                if [court_id, start, end] in sport_court_list:
+                    return "Data already exists", 409
+                else:
+                    reserve = Reservation(
+                        username=username,
+                        court_id=court_id,
+                        start=start,
+                        end=end
+                    )
+                    db.session.add(reserve)
+                    db.session.commit()
+                    return "Reservation added successfully", 201
+            else:
+                return "Incomplete request - missing fields", 400
+        else:
+            return "Request content type must be JSON", 415
 
 
 class ReservationById(Resource):
-    def delete(self):
-        pass
+    def delete(self, book_id):
+        if request.method != 'DELETE':
+            return "DELETE method required", 405
+        else:
+            book_id_list = [r.id for r in Reservation.query.all()]
+            if book_id not in book_id_list:
+                return "Sport doesn't exists", 409
+            else:
+                Reservation.query.filter(Reservation.id == book_id).delete()
+                db.session.commit()
+                return "Deleted successfully", 201
 
 
 class SportConverter(BaseConverter):
@@ -377,6 +483,18 @@ class SportConverter(BaseConverter):
 
     def to_url(self, db_sport):
         return db_sport.name
+
+
+class UserConverter(BaseConverter):
+
+    def to_python(self, user_name):
+        db_user = User.query.filter_by(username=user_name).first()
+        if db_user is None:
+            raise NotFound
+        return db_user
+
+    def to_url(self, db_user):
+        return db_user.username
 
 
 @app.route("/", methods=['POST', 'GET'])
@@ -456,7 +574,6 @@ def retrieve_schedule(sport_name, input_date):
     return content, is_free_dict
 
 
-# Need to change date from today
 def populate_db():
     """
     Auto generate sport and courts
@@ -472,9 +589,9 @@ def populate_db():
     # add courts
     # 6 courts for badminton
     for i in range(1, 7):
-        for j in range(1, 8):
+        for j in range(0, 8):
             bad_court = Court(
-                court_no=i, date=date(2022, 3, 17 + j),
+                court_no=i, date=date.today() + dt.timedelta(days=j),
                 free_slots="9:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,"
                            "17:00,18:00,19:00,20:00,21:00,22:00")
             badminton.courts.append(bad_court)
@@ -482,9 +599,9 @@ def populate_db():
 
     # 4 courts for tennis
     for i in range(1, 5):
-        for j in range(1, 8):
+        for j in range(0, 8):
             t_court = Court(
-                court_no=i, date=date(2022, 3, 17 + j),
+                court_no=i, date=date.today() + dt.timedelta(days=j),
                 free_slots="9:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,"
                            "17:00,18:00,19:00,20:00,21:00,22:00")
             tennis.courts.append(t_court)
@@ -492,9 +609,9 @@ def populate_db():
 
     # 3 courts for tennis
     for i in range(1, 4):
-        for j in range(1, 8):
+        for j in range(0, 8):
             bb_court = Court(
-                court_no=i, date=date(2022, 3, 17 + j),
+                court_no=i, date=date.today() + dt.timedelta(days=j),
                 free_slots="11:00,12:00,13:00,14:00,15:00,16:00,"
                            "17:00,18:00,19:00,20:00,21:00,22:00")
             basketball.courts.append(bb_court)
@@ -524,7 +641,13 @@ def populate_db():
         start="11:00",
         end="13:00"
     )
+    reserve_u1_2 = Reservation(
+        court_id=4,
+        start="14:00",
+        end="15:00"
+    )
     user2.reservations.append(reserve2)
+    user2.reservations.append(reserve_u1_2)
     db.session.add(user1)
     db.session.add(user2)
     db.session.commit()
@@ -560,7 +683,10 @@ app.cli.add_command(populate_db_cmd)
 api.add_resource(UserCollection, "/api/users/")
 api.add_resource(SportCollection, "/api/sports/")
 app.url_map.converters["sport"] = SportConverter
+app.url_map.converters["user"] = UserConverter
 api.add_resource(SportItem, "/api/sports/<sport:sport>/")
+api.add_resource(UserItem, "/api/users/<user:user>/")
 api.add_resource(CourtCollection, '/api/sports/<sport:sport>/courts/')
 api.add_resource(CourtItem, "/api/sports/<sport:sport>/courts/<int:court_no>/")
 api.add_resource(ReservationCollection, "/api/reservations/<username>/")
+api.add_resource(ReservationById, "/api/reservations/<int:book_id>/")
