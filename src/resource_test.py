@@ -13,11 +13,13 @@ from sqlalchemy.exc import IntegrityError, StatementError
 from app import app, db
 from app import User, Sport, Court, Reservation
 
+
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
+
 
 # based on http://flask.pocoo.org/docs/1.0/testing/
 @pytest.fixture
@@ -350,4 +352,3 @@ class TestReservationById(object):
         # send delete request again for same sport
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 409
-

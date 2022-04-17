@@ -1,0 +1,14 @@
+table {
+    border-collapse: separate;
+    border-spacing: 0 17px;
+    margin-bottom: 0 !important;
+}
+
+table th, table td{
+    border: none !important;
+}
+
+input {
+    width: 80%;
+    background: bottom;
+}

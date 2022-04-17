@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/unicons.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/index.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/header.css')}}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/schedule.css')}}">
     <script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/jquery-1.12.0.min.js')}}"></script>
@@ -15,7 +16,17 @@
 <body>
     <div class="logo-wrap">
         <img src="https://raw.githubusercontent.com/tuminguyen/PWP/master/src/static/img/BYC_logo.jpg">
-        <h1>Book Your Court Today!</h1>
+        <div class="header-bar">
+            <h1>Book Your Court Today!</h1>
+            <div class="dropdown">
+                  <button class="dropbtn">Hi, {{ username }}</button>
+                  <div class="dropdown-content">
+                    <a href="/{{username}}/reservations/">Your reservations</a>
+                    <a href="/{{username}}/profile/">Edit profile</a>
+                    <a href="/">Log out</a>
+                  </div>
+            </div>
+        </div>
     </div>
     <div class="section">
         <div class="container">
@@ -23,14 +34,14 @@
                 <div class="col-12">
                     <div class="section text-center">
                         <div class="topnav tab-sport-item">
-                            <a name="link-bad" href="/booking/badminton" onclick="badminton_retrieve()" class="link active">Badminton</a>
-                            <a name="link-bas" href="/booking/basketball" onclick="basketball_retrieve()" class="link">Basketball</a>
-                            <a name="link-ten" href="/booking/tennis" onclick="tennis_retrieve()" class="link">Tennis</a>
+                            <a name="link-bad" href="/{{username}}/booking/badminton/" onclick="badminton_retrieve()" class="link active">Badminton</a>
+                            <a name="link-bas" href="/{{username}}/booking/basketball/" onclick="basketball_retrieve()" class="link">Basketball</a>
+                            <a name="link-ten" href="/{{username}}/booking/tennis/" onclick="tennis_retrieve()" class="link">Tennis</a>
                         </div>
                         <div class="topnav tab-7d">
                         </div>
                         <div class="schedule-table">
-                            <form action="/confirm-booking" method="POST">
+                            <form action="/{{username}}/confirm-booking" method="POST">
                                 <table>
                                     <tr>
                                         <th class="time"></th>
@@ -40,7 +51,12 @@
                                     </tr>
                                     <tr class="row-gap">
                                         <td class="time"></td>
-                                        <td colspan="{{n_court}}"></td>
+                                        <td colspan="{{n_court}}">
+                                            <input type="date" id="inp-date" name="input-date" value="{{input_date}}"
+                                            onfocus="this.max=new Date(+new Date + 6048e5).toISOString().split('T')[0];
+                                            this.min=new Date(+new Date + 1).toISOString().split('T')[0];"
+                                            onchange="">
+                                        </td>
                                     </tr>
                                     {% for s_key, s_value in slots_in_dict.items() %}
                                         <tr>
@@ -48,8 +64,16 @@
                                             {% for idx in range(n_court) %}
                                                 {% if s_value[idx] %}
                                                     <td class="free">
+                                                        {% if sport_name == "badminton" %}
+                                                        <input class='td-btn btn' type='submit' name="slot"
+                                                               value="{{s_key}}-B{{idx+1}}"/>
+                                                        {% elif sport_name == "tennis" %}
+                                                        <input class='td-btn btn' type='submit' name="slot"
+                                                               value="{{s_key}}-T{{idx+1}}"/>
+                                                        {% else %}
                                                         <input class='td-btn btn' type='submit' name="slot"
                                                                value="{{s_key}}-C{{idx+1}}"/>
+                                                        {% endif %}
                                                     </td>
                                                 {% else %}
                                                     <td class="booked">Booked</td>

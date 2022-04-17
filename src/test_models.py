@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError, StatementError
 import app
 from app import User, Sport, Court, Reservation
 
+
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
@@ -153,4 +154,3 @@ def test_sport_columns(db_handle):
         db_handle.session.commit()
 
     db_handle.session.rollback()
-

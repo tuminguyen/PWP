@@ -229,7 +229,6 @@ class UserItem(Resource):
         if request.method != 'PUT':
             return "PUT method required", 405
         data = request.get_json()
-
         if data is not None:
             user_list = [u.username for u in User.query.all()]
             if user.username not in user_list:
@@ -524,33 +523,91 @@ def login():
     try:
         user = User.query.filter_by(username=uname).first()
         if user.pwd == request.form.get('log-pwd'):
-            input_date = "2022-03-18"
-            res_content, is_free_dict = retrieve_schedule("badminton", "2022-03-18")
+            input_date = date.today().strftime("%Y-%m-%d")
+            res_content, is_free_dict = retrieve_schedule("badminton", input_date)
             return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict,
-                                   n_court=len(res_content["courts"]), input_date=input_date)
+                                   sport_name="badminton", n_court=len(res_content["courts"]),
+                                   input_date=input_date, username=uname)
         else:
             return "Wrong username or password. Please try again!", 409
     except Exception as e:
         return str(e), 500
 
 
+@app.route("/<username>/booking/<sport>/", methods=['GET'])
+def sport_retrieve(sport, username):
+    input_date = date.today().strftime("%Y-%m-%d")
+    res_content, is_free_dict = retrieve_schedule(sport, input_date)
+    return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict, sport_name=sport,
+                           n_court=len(res_content["courts"]), input_date=input_date, username=username)
+
+
 # Need to be updated
-@app.route("/confirm-booking", methods=['POST'])
-def confirm_booking():
+@app.route("/<username>/confirm-booking", methods=['POST'])
+def confirm_booking(username):
     time_slot = request.form.get('slot').split("-")
     start = time_slot[0]
     end = time_slot[1]
     court = time_slot[-1]
-    return render_template('booking_check_confirm.html', start=start, end=end, court=court)
+    sport_name = court[0]
+    if sport_name == 'B':
+        sport_name = "Badminton"
+    elif sport_name == 'T':
+        sport_name = "Tennis"
+    else:
+        sport_name = 'Basketball'
+    input_date = request.form.get('input-date')
+    day_name = datetime.strptime(input_date, "%Y-%m-%d").strftime("%A")
+    return render_template('booking_check_confirm.html', start=start, end=end, court=court[-1],
+                           sport=sport_name, date=input_date, day=day_name, username=username)
 
 
-# Need to be updated
-@app.route("/booking/<sport>/", methods=['GET'])
-def basketball_retrieve(sport):
-    input_date = "2022-03-18"
-    res_content, is_free_dict = retrieve_schedule(sport, input_date)
-    return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict,
-                           n_court=len(res_content["courts"]), input_date=input_date)
+@app.route("/<username>/reservations/", methods=['GET', 'POST'])
+def booking_history(username):
+    if request.method == 'POST':
+        payload = {}
+        requests.put("http://127.0.0.1:5000/api/reservations/{}/".format(username), json=payload)
+    query = requests.get("http://127.0.0.1:5000/api/reservations/{}/".format(username))
+    content = json.loads(query.content.decode())
+    reservations = content['reservations']
+    hist = []
+    for r in reservations:
+        play_date = r['court_info']['date']
+        date_info = datetime.strptime(r['court_info']['date'], "%Y-%m-%d").strftime("%A") + " " + play_date
+        time_info = r['start'] + ' - ' + r['end']
+        sport = r['court_info']['sport']
+        court_info = sport.upper() + ' / ' + sport.upper() + " " + str(r['court_info']['court_id'])
+        book_id = r['book_id']
+        hist.append({'id': book_id, 'court_info': court_info, 'time': time_info, 'date': date_info})
+    return render_template("own_reservations.html", booking=hist, username=username)
+
+
+@app.route("/<username>/profile/", methods=['GET', 'POST'])
+def load_profile(username):
+    if request.method == 'POST':
+        data = request.form
+        fname = data['fname']
+        lname = data['lname']
+        phone = data['phone']
+        addr = data['addr']
+        payload = {"fname": fname, "lname": lname, 'phone': phone, 'addr': addr}
+        requests.put("http://127.0.0.1:5000/api/users/{}/".format(username), json=payload)
+    query = requests.get("http://127.0.0.1:5000/api/users/{}/".format(username))
+    content = json.loads(query.content.decode())
+    first = content['first_name']
+    last = content['last_name']
+    uphone = content['phone']
+    uaddr = content['address']
+    if first is None:
+        first = ""
+    if last is None:
+        last = ""
+    if uphone is None:
+        uphone = ""
+    if uaddr is None:
+        uaddr = ""
+    return render_template("edit_profile.html", username=username, fname=first, lname=last,
+                           phone=uphone, addr=uaddr, email=content['email'])
 
 
 @app.route("/forgot-password", methods=['GET'])
@@ -640,12 +697,11 @@ def populate_db():
     )
     db.session.add(user1)
     user2 = User(
-        username='van_mj2',
+        username='mj2',
         pwd='vAnT123456@',
         email='simmi.vandana@gmail.com'
     )
     db.session.add(user2)
-
     reserve1 = Reservation(
         court_id=2,
         start="15:00",
@@ -664,8 +720,6 @@ def populate_db():
     )
     user2.reservations.append(reserve2)
     user2.reservations.append(reserve_u1_2)
-    db.session.add(user1)
-    db.session.add(user2)
     db.session.commit()
 
 
