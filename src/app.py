@@ -7,7 +7,7 @@ import requests
 import json
 from flask.cli import with_appcontext
 import sqlalchemy.types
-from flask import Flask, make_response
+from flask import Flask, make_response, redirect
 from flask import request, jsonify
 from flask import render_template
 from flask_restful import Resource
@@ -422,8 +422,6 @@ class CourtItem(Resource):
 class ReservationCollection(Resource):
     def get(self, username):
         if request.method == 'GET':
-            # res = [r.serialize(short_form=False)
-            #        for r in Reservation.query.filter(Reservation.username == username).all()]
             reservation_list = Reservation.query.filter(Reservation.username == username).all()
 
             value = {
@@ -434,7 +432,7 @@ class ReservationCollection(Resource):
                 value["reservations"].append({"book_id": r.id,
                                               "start": r.start,
                                               "end": r.end,
-                                              "court_info": {"court_id": court.court_no,
+                                              "court_info": {"court_no": court.court_no,
                                                              "date": str(court.date),
                                                              "sport": court.sport_name}
                                               })
@@ -453,7 +451,6 @@ class ReservationCollection(Resource):
                 end = data['end']
                 sport_court_list = [[r.court_id, r.start, r.end]
                                     for r in Reservation.query.filter(Reservation.username == username).all()]
-                print(sport_court_list)
                 if [court_id, start, end] in sport_court_list:
                     return "Data already exists", 409
                 else:
@@ -542,7 +539,6 @@ def sport_retrieve(sport, username):
                            n_court=len(res_content["courts"]), input_date=input_date, username=username)
 
 
-# Need to be updated
 @app.route("/<username>/confirm-booking", methods=['POST'])
 def confirm_booking(username):
     time_slot = request.form.get('slot').split("-")
@@ -565,8 +561,17 @@ def confirm_booking(username):
 @app.route("/<username>/reservations/", methods=['GET', 'POST'])
 def booking_history(username):
     if request.method == 'POST':
-        payload = {}
-        requests.put("http://127.0.0.1:5000/api/reservations/{}/".format(username), json=payload)
+        data = request.form
+        day_info = data["day-date"]
+        date_ = day_info.split(" ")[-1]
+        start = data["start"]
+        end = data["end"]
+        court = data["court"]
+        sport = court.split('/')[0][:-1].lower()
+        court_id = Court.query.filter(
+            and_(Court.sport_name == sport, Court.date == to_date(date_), Court.court_no == court[-1])).first().id
+        payload = {'start': start, 'end': end, 'court_id': court_id}
+        requests.post("http://127.0.0.1:5000/api/reservations/{}/".format(username), json=payload)
     query = requests.get("http://127.0.0.1:5000/api/reservations/{}/".format(username))
     content = json.loads(query.content.decode())
     reservations = content['reservations']
@@ -576,10 +581,16 @@ def booking_history(username):
         date_info = datetime.strptime(r['court_info']['date'], "%Y-%m-%d").strftime("%A") + " " + play_date
         time_info = r['start'] + ' - ' + r['end']
         sport = r['court_info']['sport']
-        court_info = sport.upper() + ' / ' + sport.upper() + " " + str(r['court_info']['court_id'])
+        court_info = sport.upper() + ' / ' + sport.upper() + " " + str(r['court_info']['court_no'])
         book_id = r['book_id']
         hist.append({'id': book_id, 'court_info': court_info, 'time': time_info, 'date': date_info})
     return render_template("own_reservations.html", booking=hist, username=username)
+
+
+@app.route("/<username>/reservations/delete/<booking_id>", methods=['POST'])
+def delete_booking(booking_id, username):
+    requests.delete("http://127.0.0.1:5000/api/reservations/{}/".format(booking_id))
+    return redirect("/{}/reservations/".format(username))
 
 
 @app.route("/<username>/profile/", methods=['GET', 'POST'])

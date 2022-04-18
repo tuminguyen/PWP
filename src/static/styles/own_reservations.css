@@ -1,0 +1,67 @@
+.card-3d-reservation {
+    width: 440px;
+    max-width: 100%;
+    transform-style: preserve-3d;
+    perspective: 800px;
+    margin: 20px auto;
+}
+
+.card-content {
+    width: 100%;
+    background-color: #2a2b38;
+    background-image: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1462889/pat.svg');
+    background-repeat: no-repeat;
+    background-size: 200%;
+    border-radius: 6px;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -o-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+
+.card-content-center-wrap {
+    padding: 50px 35px;
+    display: block;
+    overflow: auto;
+}
+
+.table {
+    margin: 0
+}
+
+.table > tbody > tr > td {
+    padding: 14px;
+}
+
+
+.table > tbody > tr:last-child{
+    border-bottom: 1px solid #ddd;
+}
+
+.btn {
+    margin: 8px auto;
+    padding: 0;
+    background: transparent;
+    color: #ddd;
+    box-shadow: none;
+}
+
+
+.btn:hover, .btn:focus {
+    background: transparent;
+}
+
+.btn i {
+    font-size: xxx-large
+}
+
+.back-booking {
+    margin-top: 40px;
+}
+
+.back-booking a{
+    text-decoration: underline;
+}

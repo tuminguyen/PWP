@@ -23,6 +23,7 @@
                   <div class="dropdown-content">
                     <a href="/{{username}}/reservations/">Your reservations</a>
                     <a href="/{{username}}/profile/">Edit profile</a>
+                    <a href="/{{username}}/booking/badminton">Book courts</a>
                     <a href="/">Log out</a>
                   </div>
             </div>
@@ -32,35 +33,33 @@
         <div class="container">
             <div class="row full-height justify-content-center">
                 <div class="col-12 text-center align-self-center">
-                    <div class="section text-center">
-                        <h2>
-                            <span>Your Reservations</span>
-                        </h2>
-                        <div class="card-3d-wrap">
-                            <div class="card-3d-wrap-insider">
-                                <div class="card-front">
-                                    <div class="center-wrap">
-                                        <table id="w0" class="table txt-left">
-                                              <tbody>
-                                              {% for book in booking %}
-                                              <tr>
-                                                <td>
-                                                    <input type="checkbox" name="remove[]" value="{{ book['id'] }}">
-                                                </td>
-                                                <td>
-                                                    <strong>{{ book['date'] }}</strong>
-                                                    <br>
-                                                    {{ book['time'] }}
-                                                    <br>
-                                                    {{ book['court_info'] }}
-                                                    <br>
-                                                </td>
-                                              </tr>
-                                              {% endfor %}
-                                            </tbody>
-                                        </table>
-<!--                                        <button type="submit" class="btn mt-1 mb-2">Delete</button>-->
-                                    </div>
+                    <h2 class="text-center">Your Reservations</h2>
+                    <div class="card-3d-reservation">
+                        <div class="card-content">
+                            <div class="card-content-center-wrap">
+                                <table id="w0" class="table txt-left">
+                                      <tbody>
+                                      {% for book in booking %}
+                                      <form action="/{{username}}/reservations/delete/{{book['id']}}" method="POST">
+                                      <tr>
+                                        <td>
+                                            <button class="btn" type="submit"><i class="fa fa-trash"></i></button>
+                                        </td>
+                                        <td>
+                                            <strong>{{ book['date'] }}</strong>
+                                            <br>
+                                            {{ book['time'] }}
+                                            <br>
+                                            {{ book['court_info'] }}
+                                            <br>
+                                        </td>
+                                      </tr>
+                                      </form>
+                                      {% endfor %}
+                                    </tbody>
+                                </table>
+                                <div class="back-booking">
+                                    <a name="submit-btn" href="/{{username}}/booking/badminton" class="link">Go to booking</a>
                                 </div>
                             </div>
                         </div>

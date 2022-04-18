@@ -1,7 +1,14 @@
 th {
-    max-width: 80px;
+    width: 100px;
 }
 
 #booking-endtime {
     width: auto;
+}
+
+
+.inp-field{
+    border: none;
+    background: transparent;
+    width: 100%;
 }

@@ -43,31 +43,32 @@
                                         <div class="txt-left mb-2">
                                             <p>Please check all the information below and confirm your booking. </p>
                                         </div>
-                                        <table id="w0" class="table txt-left">
-                                              <tbody><tr class="toggle-on-change-clock">
-                                                <th>Date</th>
-                                                <td>{{ day }} {{ date }}</td>
-                                              </tr>
-                                              <tr class="toggle-on-change-clock">
-                                                <th>Start Time</th>
-                                                <td>{{ start }}</td>
-                                              </tr>
-
-                                              <tr class="toggle-on-change-clock">
-                                                <th>End Time</th>
-                                                <td>{{ end }}</td>
-                                              </tr>
-                                              <tr>
-                                                  <th>Court</th>
-                                                  <td> {{ sport }} / {{ sport}} {{ court }}</td>
-                                              </tr>
-                                              <tr>
-                                                <th>Customer</th>
-                                                <td>{{ username }}</td>
-                                              </tr>
-                                            </tbody>
-                                        </table>
                                         <form action="/{{username}}/reservations/" method="POST" class="mt-3">
+                                            <table id="w0" class="table txt-left">
+                                                  <tbody>
+                                                  <tr>
+                                                    <th>Date</th>
+                                                    <td><input readonly value="{{ day }} {{ date }}" name="day-date" class="inp-field"/></td>
+                                                  </tr>
+                                                  <tr>
+                                                    <th>Start Time</th>
+                                                    <td><input readonly value="{{ start }}" name="start" class="inp-field"/></td>
+                                                  </tr>
+
+                                                  <tr>
+                                                    <th>End Time</th>
+                                                    <td><input readonly value="{{ end }}" name="end" class="inp-field"/></td>
+                                                  </tr>
+                                                  <tr>
+                                                      <th>Court</th>
+                                                      <td><input readonly value="{{ sport }} / {{ sport}} {{ court }}" name="court" class="inp-field"/></td>
+                                                  </tr>
+                                                  <tr>
+                                                    <th>Customer</th>
+                                                    <td>{{ username }}</td>
+                                                  </tr>
+                                                </tbody>
+                                            </table>
                                             <button type="submit" class="btn mt-1 mb-2">Confirm and save</button>
                                         </form>
                                     </div>
