@@ -180,7 +180,6 @@ class UserCollection(Resource):
             return make_response(render_template('after_signup.html'), 200)
 
 
-# recheck put method for pwd
 class UserItem(Resource):
     def get(self, user):
         if request.method == 'GET':
@@ -217,9 +216,6 @@ class UserItem(Resource):
                 if 'pwd' in data:
                     pwd = data['pwd']
                     u.pwd = pwd
-                if 'email' in data:
-                    email = data['email']
-                    u.email = email
                 if 'fname' in data:
                     fname = data['fname']
                     u.fname = fname
@@ -551,6 +547,8 @@ def booking_history(username):
             and_(Court.sport_name == sport, Court.date == to_date(date_), Court.court_no == court[-1])).first().id
         payload = {'start': start, 'end': end, 'court_id': court_id}
         requests.post("http://127.0.0.1:5000/api/reservations/{}/".format(username), json=payload)
+        requests.put("http://127.0.0.1:5000/api/sports/{}/courts/{}".format(sport, court[-1]),
+                     json={"date": date_, "start": start, "end": end})
     query = requests.get("http://127.0.0.1:5000/api/reservations/{}/".format(username))
     content = json.loads(query.content.decode())
     reservations = content['reservations']
