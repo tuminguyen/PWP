@@ -151,55 +151,36 @@ class UserCollection(Resource):
     def post(self):
         if request.method != 'POST':
             return "POST method required", 405
-        data = request.get_json()
-        if data is not None:
-            if 'name' and 'pwd' and 'email' in data:
-                username = data['username']
-                pwd = data['pwd']
-                email = data['email']
-                user_list_id = [u.username for u in User.query.all()]
-                user_list_email = [u.email for u in User.query.all()]
-                if username in user_list_id:
-                    return "Username already used by others", 409
-                elif email in user_list_email:
-                    return "Email has been registered by other user. Please use another.", 409
-                else:
-                    phone = ''
-                    addr = ''
-                    fname = ''
-                    lname = ''
-                    if 'phone' in data:
-                        phone = data['phone']
-                    if 'address' in data:
-                        addr = data['addr']
-                    if 'fname' in data:
-                        fname = data['fname']
-                    if 'lname' in data:
-                        lname = data['lname']
-                    user = User(
-                        username=username,
-                        pwd=pwd,
-                        fname=fname,
-                        lname=lname,
-                        phone=phone,
-                        addr=addr,
-                        email=email
-                    )
-                    db.session.add(user)
-                    db.session.commit()
-                    msg = Message('BYC - Confirm your new account',
-                                  sender='bookyourcourt.info@gmail.com',
-                                  recipients=[email])
-                    msg.html = render_template('mail_confirm_account.html')
-                    mail.send(msg)
-                    return make_response(render_template('after_signup.html'), 201)
-            else:
-                return "Incomplete request - missing fields", 400
+        id = request.form.get('sign-name')
+        pwd = request.form.get('sign-pwd')
+        email = request.form.get('sign-email')
+        user_list_id = [u.username for u in User.query.all()]
+        user_list_email = [u.email for u in User.query.all()]
+        if id in user_list_id:
+            return "Username already used by others", 409
+        elif email in user_list_email:
+            return "Email has been registered by other user. Please use another.", 409
         else:
-            return "Request content type must be JSON", 415
+            user = User(
+                username=id,
+                pwd=pwd,
+                fname='',
+                lname='',
+                phone='',
+                addr='',
+                email=email
+            )
+            db.session.add(user)
+            db.session.commit()
+            msg = Message('BYC - Confirm your new account',
+                          sender='bookyourcourt.info@gmail.com',
+                          recipients=[email])
+            msg.html = render_template('mail_confirm_account.html')
+            mail.send(msg)
+            return make_response(render_template('after_signup.html'), 200)
 
 
-# recheck put method for pwd and email
+# recheck put method for pwd
 class UserItem(Resource):
     def get(self, user):
         if request.method == 'GET':
@@ -214,8 +195,6 @@ class UserItem(Resource):
         if request.method != 'DELETE':
             return "DELETE method required", 405
         else:
-            # print(user)
-            # user_uri = api.url_for(UserItem, user=user)
             user_list = [u.username for u in User.query.all()]
             if user.username not in user_list:
                 return "User not found", 404
