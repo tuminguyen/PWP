@@ -460,7 +460,7 @@ class ReservationById(Resource):
                 new_int_slots = [int(x.split(":")[0]) for x in slot.split(",")]
                 new_int_slots.append(int(start.split(":")[0]))
                 new_int_slots.sort()
-                new_str_slots = [str(x)+':00' for x in new_int_slots]
+                new_str_slots = [str(x) + ':00' for x in new_int_slots]
                 updated_slots = ','.join(new_str_slots)
                 db_court.free_slots = updated_slots
                 db.session.delete(db_reserve)
@@ -514,9 +514,10 @@ def login():
         return str(e), 500
 
 
-@app.route("/<username>/booking/<sport>/", methods=['GET'])
-def sport_retrieve(sport, username):
-    input_date = date.today().strftime("%Y-%m-%d")
+@app.route("/<username>/booking/<sport>/_/<input_date>", methods=['GET'])
+def sport_retrieve(sport, username, input_date):
+    if input_date == 'today':
+        input_date = date.today().strftime("%Y-%m-%d")
     res_content, is_free_dict = retrieve_schedule(sport, input_date)
     return render_template("schedule.html", query=res_content, slots_in_dict=is_free_dict, sport_name=sport,
                            n_court=len(res_content["courts"]), input_date=input_date, username=username)
@@ -575,9 +576,6 @@ def booking_history(username):
 @app.route("/<username>/reservations/delete/<booking_id>", methods=['POST'])
 def delete_booking(booking_id, username):
     requests.delete("http://127.0.0.1:5000/api/reservations/{}/".format(booking_id))
-
-    # requests.put("http://127.0.0.1:5000/api/sports/{}/courts/{}".format(sport, court[-1]),
-    #              json={"date": date_, "start": start, "end": end})
     return redirect("/{}/reservations/".format(username))
 
 
@@ -729,8 +727,7 @@ def to_date(date_string):
 @click.command("init-db")
 @with_appcontext
 def init_db_cmd():
-    if not os.path.exists("../src/*.db"):
-        db.create_all()
+    db.create_all()
 
 
 @click.command("delete-db")

@@ -12,6 +12,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/schedule.css')}}">
     <script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/jquery-1.12.0.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/schedule.js')}}"></script>
 </head>
 <body>
     <div class="logo-wrap">
@@ -34,9 +35,9 @@
                 <div class="col-12">
                     <div class="section text-center">
                         <div class="topnav tab-sport-item">
-                            <a name="link-bad" href="/{{username}}/booking/badminton/" class="link active">Badminton</a>
-                            <a name="link-bas" href="/{{username}}/booking/basketball/" class="link">Basketball</a>
-                            <a name="link-ten" href="/{{username}}/booking/tennis/" class="link">Tennis</a>
+                            <a id="link-bad" class="link">Badminton</a>
+                            <a id="link-bas" class="link">Basketball</a>
+                            <a id="link-ten" class="link">Tennis</a>
                         </div>
                         <div class="topnav tab-7d">
                         </div>
@@ -54,8 +55,7 @@
                                         <td colspan="{{n_court}}">
                                             <input type="date" id="inp-date" name="input-date" value="{{input_date}}"
                                             onfocus="this.max=new Date(+new Date + 6048e5).toISOString().split('T')[0];
-                                            this.min=new Date(+new Date + 1).toISOString().split('T')[0];"
-                                            onchange="">
+                                            this.min=new Date(+new Date + 1).toISOString().split('T')[0];" onchange="printout()">
                                         </td>
                                     </tr>
                                     {% for s_key, s_value in slots_in_dict.items() %}
