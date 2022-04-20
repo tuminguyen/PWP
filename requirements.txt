@@ -1,51 +1,49 @@
-aniso8601 @ file:///tmp/build/80754af9/aniso8601_1597771691111/work
+aniso8601
 atomicwrites==1.4.0
 attrs==19.3.0
 blinker==1.4
 brotlipy==0.7.0
 certifi==2021.10.8
-cffi @ file:///tmp/build/80754af9/cffi_1636541929935/work
-chardet @ file:///tmp/build/80754af9/chardet_1605303159953/work
+cffi
+chardet
 click==8.0.3
-colorama @ file:///home/ktietz/src/ci/colorama_1611926383524/work
+colorama
 coverage==5.1
-cryptography @ file:///tmp/build/80754af9/cryptography_1633521537906/work
+cryptography
 flasgger==0.9.5
 Flask==2.0.2
 Flask-Cors==3.0.8
-Flask-JWT-Extended @ file:///tmp/build/80754af9/flask-jwt-extended_1594159286182/work
+Flask-JWT-Extended
 Flask-Mail==0.9.1
-Flask-RESTful @ file:///tmp/build/80754af9/flask-restful_1613768889368/work
+Flask-RESTful
 Flask-SQLAlchemy==2.5.1
 greenlet==1.1.2
 idna==2.9
 importlib-metadata==4.10.0
 itsdangerous==2.0.1
 Jinja2==3.0.3
-jsonschema @ file:///Users/ktietz/demo/mc3/conda-bld/jsonschema_1630511932244/work
+jsonschema
 MarkupSafe==2.0.1
 mistune==2.0.2
 more-itertools==8.2.0
 packaging==20.3
-pluggy @ file:///tmp/build/80754af9/pluggy_1615976314111/work
-psycopg2 @ file:///tmp/build/80754af9/psycopg2_1612298578530/work
-py==1.8.1
-pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
-PyJWT @ file:///tmp/build/80754af9/pyjwt_1619651626416/work
-pyOpenSSL @ file:///tmp/build/80754af9/pyopenssl_1635333100036/work
-pyparsing @ file:///home/linux1/recipes/ci/pyparsing_1610983426697/work
+pluggy
+PyJWT
+pyOpenSSL
+pyparsing
 pyrsistent==0.16.0
-PySocks @ file:///tmp/build/80754af9/pysocks_1594394576006/work
+PySocks
 pytest==5.4.2
 pytest-cov==2.8.1
-python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
+python-dateutil
 pytz==2020.1
 PyYAML==6.0
 requests==2.23.0
-six @ file:///tmp/build/80754af9/six_1605201619755/work
+six
 SQLAlchemy==1.4.29
 typing_extensions==4.0.1
 urllib3==1.25.9
 wcwidth==0.1.9
 Werkzeug==2.0.3
-zipp @ file:///opt/conda/conda-bld/zipp_1641824620731/work
+zipp
+gunicorn

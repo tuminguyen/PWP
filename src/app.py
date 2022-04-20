@@ -453,8 +453,16 @@ class ReservationById(Resource):
             if book_id not in book_id_list:
                 return "Booking Id doesn't exists", 409
             else:
-                # Reservation.query.filter(Reservation.id == book_id).delete()
                 db_reserve = Reservation.query.filter_by(id=book_id).first()
+                start = db_reserve.start
+                db_court = Court.query.filter(Court.id == db_reserve.court_id).first()
+                slot = db_court.free_slots
+                new_int_slots = [int(x.split(":")[0]) for x in slot.split(",")]
+                new_int_slots.append(int(start.split(":")[0]))
+                new_int_slots.sort()
+                new_str_slots = [str(x)+':00' for x in new_int_slots]
+                updated_slots = ','.join(new_str_slots)
+                db_court.free_slots = updated_slots
                 db.session.delete(db_reserve)
                 db.session.commit()
                 return "Deleted successfully", 201
@@ -567,6 +575,9 @@ def booking_history(username):
 @app.route("/<username>/reservations/delete/<booking_id>", methods=['POST'])
 def delete_booking(booking_id, username):
     requests.delete("http://127.0.0.1:5000/api/reservations/{}/".format(booking_id))
+
+    # requests.put("http://127.0.0.1:5000/api/sports/{}/courts/{}".format(sport, court[-1]),
+    #              json={"date": date_, "start": start, "end": end})
     return redirect("/{}/reservations/".format(username))
 
 
