@@ -132,9 +132,6 @@ class Reservation(db.Model):
             "start": self.start,
             "end": self.end,
         }
-        # court = Court.query.filter(id=self.court_id).first()
-        # doc["court_info"] = court.serialize(display_all=False)
-
         if not short_form:
             doc["username"] = self.username
             doc['id'] = self.id
@@ -269,13 +266,10 @@ class SportItem(Resource):
         if request.method != 'DELETE':
             return "DELETE method required", 405
         else:
-            # print(sport)
-            # sport_uri = api.url_for(SportItem, sport=sport)
             sport_list = [s.name.lower() for s in Sport.query.all()]
             if sport.name.lower() not in sport_list:
                 return "Sport not found", 404
             else:
-                # Sport.query.filter(Sport.name == sport.name).delete()
                 db_sport = Sport.query.filter_by(name=sport.name).first()
                 db.session.delete(db_sport)
                 db.session.commit()
@@ -558,6 +552,13 @@ def booking_history(username):
         requests.post("http://127.0.0.1:5000/api/reservations/{}/".format(username), json=payload)
         requests.put("http://127.0.0.1:5000/api/sports/{}/courts/{}".format(sport, court[-1]),
                      json={"date": date_, "start": start, "end": end})
+        email = User.query.filter_by(username=username).first().email
+        msg = Message('BYC - Booking Information',
+                      sender='bookyourcourt.info@gmail.com',
+                      recipients=[email])
+        msg.html = render_template('mail_booking_info.html', username=username, day=day_info,
+                                   sport=sport.capitalize(), court=court[-1], start=start, end=end)
+        mail.send(msg)
     query = requests.get("http://127.0.0.1:5000/api/reservations/{}/".format(username))
     content = json.loads(query.content.decode())
     reservations = content['reservations']

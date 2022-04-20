@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>BYC - Book Your Court</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/bootstrap.min.css')}}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/unicons.css')}}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/index.css')}}">
+        <script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/jquery-1.12.0.min.js')}}"></script>
+    </head>
+    <body>
+    <div class="section">
+        <div class="container">
+            <div class="row full-height justify-content-center">
+                <div class="col-12 text-center align-self-center">
+                    <div class="section">
+                        <div class="logo-wrap">
+                            <img src="https://raw.githubusercontent.com/tuminguyen/PWP/master/src/static/img/BYC_logo.jpg">
+                        </div>
+                        <div class="message-wrap">
+                            <div class="center-wrap">
+                                <div class="section">
+                                    <p>Hi {{username}},</p>
+
+                                    <p>Below is the information for your booked court on our BYC system.</p>
+                                    <p><strong>Date: </strong> {{ day }}</p>
+                                    <p><strong>Time: </strong> {{ start }} - {{ end }}</p>
+                                    <p><strong>Court: </strong> {{ sport }} / {{ sport}} {{ court }}</p>
+
+                                    <p>Best Regards,</p>
+                                    <p>Book Your Court Team.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </body>
+</html>
