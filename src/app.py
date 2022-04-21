@@ -104,7 +104,6 @@ class Court(db.Model):
     court_no = db.Column(db.Integer, nullable=False)
     date = db.Column(db.Date, nullable=False)
     free_slots = db.Column(db.String(200), nullable=True)
-    # free_slots = db.Column(db.String(200), nullable=False)
     reservations = db.relationship("Reservation", backref="court")
 
     def serialize(self, display_all=False):
@@ -281,7 +280,6 @@ class CourtCollection(Resource):
         if request.method != 'POST':
             return "POST method required", 405
         data = request.get_json()
-        # print(sport)
         sport_name = sport.name
         if data is not None:
             if 'court_no' in data and 'date' in data and 'free_slots' in data:
@@ -345,8 +343,6 @@ class CourtItem(Resource):
         if request.method != 'DELETE':
             return "DELETE method required", 405
         else:
-            # print(sport)
-            # sport_court_uri = api.url_for(CourtById, sport=sport, court_no=court_no)
             sport_list = [s.name.lower() for s in Sport.query.all()]
             if sport.name.lower() not in sport_list:
                 return "Sport doesn't exists", 409
@@ -647,7 +643,7 @@ def retrieve_schedule(sport_name, input_date):
 
 def populate_db():
     """
-    Auto generate sport and courts
+    Auto generate sport, courts and users
     :return:
     """
     badminton = Sport(name='badminton')
@@ -656,38 +652,95 @@ def populate_db():
     db.session.add(tennis)
     basketball = Sport(name="basketball")
     db.session.add(basketball)
+    current_time = int(datetime.now().strftime("%H:%M")[0:2])
+    # if 7:30 then drop :30, doing 7+2 to not allow booking for 7 or 8
+    # (8 also bcz if 7:59 then also not allow to book for 8, anyway we can also add 1 instead of 2)
+    start = current_time + 1
+    end = 22
+    time_range = end - start
+    # 20+2 is 22 so for 22 cannot book so booking only allowed for current_time<=20
+    if current_time <= 20:
+        free_slot_today = ""
+        for t in range(0, time_range + 1):
+            free_slot_today = free_slot_today + str(start + t) + ":00,"
+        for i in range(1, 7):
+            bad_court_today = Court(
+                court_no=i,
+                date=date.today(),
+                free_slots=free_slot_today
+            )
+            badminton.courts.append(bad_court_today)
+            db.session.add(badminton)
+        for i in range(1, 5):
+            t_court_today = Court(
+                court_no=i,
+                date=date.today(),
+                free_slots=free_slot_today
+            )
+            tennis.courts.append(t_court_today)
+            db.session.add(tennis)
+        for i in range(1, 4):
+            bb_court_today = Court(
+                court_no=i,
+                date=date.today(),
+                free_slots=free_slot_today
+            )
+            basketball.courts.append(bb_court_today)
+            db.session.add(basketball)
+    else:
+        for i in range(1, 7):
+            bad_court_today = Court(
+                court_no=i,
+                date=date.today(),
+                free_slots=""
+            )
+            badminton.courts.append(bad_court_today)
+            db.session.add(badminton)
 
-    # add courts
-    # 6 courts for badminton
+        for i in range(1, 5):
+            t_court_today = Court(
+                court_no=i,
+                date=date.today(),
+                free_slots=""
+            )
+            tennis.courts.append(t_court_today)
+            db.session.add(tennis)
+
+        for i in range(1, 4):
+            bb_court_today = Court(
+                court_no=i,
+                date=date.today(),
+                free_slots=""
+            )
+            basketball.courts.append(bb_court_today)
+            db.session.add(basketball)
+    # remaining dates 6 courts for badminton
     for i in range(1, 7):
-        for j in range(0, 8):
+        for j in range(1, 8):
             bad_court = Court(
                 court_no=i, date=date.today() + dt.timedelta(days=j),
                 free_slots="9:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,"
                            "17:00,18:00,19:00,20:00,21:00,22:00")
             badminton.courts.append(bad_court)
             db.session.add(badminton)
-
-    # 4 courts for tennis
+    # remaining dates 4 courts for tennis
     for i in range(1, 5):
-        for j in range(0, 8):
+        for j in range(1, 8):
             t_court = Court(
                 court_no=i, date=date.today() + dt.timedelta(days=j),
                 free_slots="9:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,"
                            "17:00,18:00,19:00,20:00,21:00,22:00")
             tennis.courts.append(t_court)
             db.session.add(tennis)
-
-    # 3 courts for tennis
+    # remaining dates 3 courts for bb
     for i in range(1, 4):
-        for j in range(0, 8):
+        for j in range(1, 8):
             bb_court = Court(
                 court_no=i, date=date.today() + dt.timedelta(days=j),
-                free_slots="11:00,12:00,13:00,14:00,15:00,16:00,"
+                free_slots="9:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,"
                            "17:00,18:00,19:00,20:00,21:00,22:00")
             basketball.courts.append(bb_court)
             db.session.add(basketball)
-
     user1 = User(
         username='van_mj',
         pwd='vAn123456@',
