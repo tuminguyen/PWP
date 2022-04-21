@@ -153,9 +153,9 @@ class UserCollection(Resource):
         user_list_id = [u.username for u in User.query.all()]
         user_list_email = [u.email for u in User.query.all()]
         if id in user_list_id:
-            return "Username already used by others", 409
+            return "Username or email already exists", 409
         elif email in user_list_email:
-            return "Email has been registered by other user. Please use another.", 409
+            return "Username or email already exists", 409
         else:
             user = User(
                 username=id,
@@ -173,7 +173,7 @@ class UserCollection(Resource):
                           recipients=[email])
             msg.html = render_template('mail_confirm_account.html')
             mail.send(msg)
-            return make_response(render_template('after_signup.html'), 200)
+            return make_response(render_template('after_signup.html'), 201)
 
 
 class UserItem(Resource):
@@ -325,16 +325,20 @@ class CourtCollection(Resource):
         if request.method == 'GET':
             input_date = request.args['date']
             sport_name = sport.name
-            courts_list = Court.query.filter(and_(Court.sport_name == sport_name,
-                                                  Court.date == to_date(input_date))).all()
-            value = {
-                "sport": sport_name,
-                "date": input_date,
-                "courts": []
-            }
-            for c in courts_list:
-                value["courts"].append({"court_no": c.court_no, "free_slots": c.free_slots})
-            return value, 200
+            sport_list = [u.name for u in Sport.query.all()]
+            if sport_name in sport_list:
+                courts_list = Court.query.filter(and_(Court.sport_name == sport_name,
+                                                      Court.date == to_date(input_date))).all()
+                value = {
+                    "sport": sport_name,
+                    "date": input_date,
+                    "courts": []
+                }
+                for c in courts_list:
+                    value["courts"].append({"court_no": c.court_no, "free_slots": c.free_slots})
+                return value, 200
+            else:
+                return "Sport not found", 404
         return "GET method required", 405
 
 
@@ -345,11 +349,11 @@ class CourtItem(Resource):
         else:
             sport_list = [s.name.lower() for s in Sport.query.all()]
             if sport.name.lower() not in sport_list:
-                return "Sport doesn't exists", 409
+                return "Sport or court not found", 404
             else:
                 court_no_list = [c.court_no for c in Court.query.filter(and_(Court.sport_name == sport.name)).all()]
                 if court_no not in court_no_list:
-                    return "Court number for this sport doesn't exists", 409
+                    return "Sport or court not found", 404
                 else:
                     Court.query.filter(and_(Court.sport_name == sport.name, Court.court_no == court_no)).delete()
                     db.session.commit()

@@ -110,32 +110,6 @@ class TestUserCollection(object):
             assert "pwd" in item
             assert "email" in item
 
-    def test_post(self, client):
-        """
-        Tests the POST method. Checks all of the possible error codes, and
-        also checks that a valid request receives a 201 response with a
-        location header that leads into the newly created resource.
-        """
-
-        valid = _get_user_json(4)
-
-        # test with wrong content type
-        resp = client.post(self.RESOURCE_URL, data=json.dumps(valid))
-        assert resp.status_code == 415
-
-        # test with valid and see that it exists afterward
-        resp = client.post(self.RESOURCE_URL, json=valid)
-        assert resp.status_code == 201
-
-        # send same data again for 409
-        resp = client.post(self.RESOURCE_URL, json=valid)
-        assert resp.status_code == 409
-
-        # remove model field for 400
-        valid.pop("email")
-        resp = client.post(self.RESOURCE_URL, json=valid)
-        assert resp.status_code == 400
-
 
 class TestUserItem(object):
     """
