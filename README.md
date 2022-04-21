@@ -22,7 +22,13 @@ pip install -r requirements.txt
 chmod +x run.sh
 chmod +x delete_db.sh
 ```
-3. Run the program (auto generate table)
+
+3. If db/ folder does not exist, create the new one before running the program. Otherwise, skip this step.
+```
+mkdir db
+```
+
+4. Run the program (auto generate table)
 ```
 # Option 1: Auto populate database
 ./run.sh -p true 
@@ -31,8 +37,8 @@ chmod +x delete_db.sh
 ./run.sh -p false 
 ```
 
-4. Open your browser and access 127.0.0.1:5000
-5. Delete all tables and database whenever you want by executing
+5. Open your browser and access 127.0.0.1:5000
+6. Delete all tables and database whenever you want by executing
 ```
 ./delete_db.sh
 ```
