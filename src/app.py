@@ -397,14 +397,28 @@ class ReservationCollection(Resource):
                 "reservations": []
             }
             for r in reservation_list:
+                today_date = date.today()
+                current_time = datetime.now().strftime("%H:%M")
+                current_time = dt.datetime.strptime(current_time, '%H:%M').time()
                 court = Court.query.filter(Court.id == r.court_id).first()
-                value["reservations"].append({"book_id": r.id,
-                                              "start": r.start,
-                                              "end": r.end,
-                                              "court_info": {"court_no": court.court_no,
-                                                             "date": str(court.date),
-                                                             "sport": court.sport_name}
-                                              })
+                r_start = dt.datetime.strptime(r.start, '%H:%M').time()
+                if court.date == today_date:
+                    if r_start >= current_time:
+                        value["reservations"].append({"book_id": r.id,
+                                                      "start": r.start,
+                                                      "end": r.end,
+                                                      "court_info": {"court_no": court.court_no,
+                                                                     "date": str(court.date),
+                                                                     "sport": court.sport_name}
+                                                      })
+                else:
+                    value["reservations"].append({"book_id": r.id,
+                                                  "start": r.start,
+                                                  "end": r.end,
+                                                  "court_info": {"court_no": court.court_no,
+                                                                 "date": str(court.date),
+                                                                 "sport": court.sport_name}
+                                                  })
 
             return value, 200
         return "GET method required", 405
@@ -448,9 +462,13 @@ class ReservationById(Resource):
                 return "Booking Id doesn't exists", 409
             else:
                 db_reserve = Reservation.query.filter_by(id=book_id).first()
+                print(db_reserve)
+                print(db_reserve.start)
                 start = db_reserve.start
                 db_court = Court.query.filter(Court.id == db_reserve.court_id).first()
                 slot = db_court.free_slots
+                print(db_court)
+                print(slot)
                 new_int_slots = [int(x.split(":")[0]) for x in slot.split(",")]
                 new_int_slots.append(int(start.split(":")[0]))
                 new_int_slots.sort()
@@ -666,7 +684,9 @@ def populate_db():
     if current_time <= 20:
         free_slot_today = ""
         for t in range(0, time_range + 1):
-            free_slot_today = free_slot_today + str(start + t) + ":00,"
+            free_slot_today = free_slot_today + str(start + t) + ":00"
+            if t != time_range:
+                free_slot_today = free_slot_today + ","
         for i in range(1, 7):
             bad_court_today = Court(
                 court_no=i,
