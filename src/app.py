@@ -462,13 +462,9 @@ class ReservationById(Resource):
                 return "Booking Id doesn't exists", 409
             else:
                 db_reserve = Reservation.query.filter_by(id=book_id).first()
-                print(db_reserve)
-                print(db_reserve.start)
                 start = db_reserve.start
                 db_court = Court.query.filter(Court.id == db_reserve.court_id).first()
                 slot = db_court.free_slots
-                print(db_court)
-                print(slot)
                 new_int_slots = [int(x.split(":")[0]) for x in slot.split(",")]
                 new_int_slots.append(int(start.split(":")[0]))
                 new_int_slots.sort()
@@ -658,8 +654,9 @@ def retrieve_schedule(sport_name, input_date):
         booked = [x for x in full if x not in slot_split]
         for b in booked:
             b_split = int(b.split(":")[0])
-            book_key = "{}:00-{}:00".format(b_split, b_split + 1)
-            is_free_dict[book_key][idx] = False
+            if b_split != 22:
+                book_key = "{}:00-{}:00".format(b_split, b_split + 1)
+                is_free_dict[book_key][idx] = False
     return content, is_free_dict
 
 
