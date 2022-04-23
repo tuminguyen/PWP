@@ -321,11 +321,31 @@ class CourtCollection(Resource):
         else:
             return "Request content type must be JSON", 415
 
+    # def get(self, sport):
+    #     if request.method == 'GET':
+    #         input_date = request.args['date']
+    #         sport_name = sport.name
+    #         sport_list = [u.name for u in Sport.query.all()]
+    #         if sport_name in sport_list:
+    #             courts_list = Court.query.filter(and_(Court.sport_name == sport_name,
+    #                                                   Court.date == to_date(input_date))).all()
+    #             value = {
+    #                 "sport": sport_name,
+    #                 "date": input_date,
+    #                 "courts": []
+    #             }
+    #             for c in courts_list:
+    #                 value["courts"].append({"court_no": c.court_no, "free_slots": c.free_slots})
+    #             return value, 200
+    #         else:
+    #             return "Sport not found", 404
+    #     return "GET method required", 405
     def get(self, sport):
         if request.method == 'GET':
             input_date = request.args['date']
             sport_name = sport.name
             sport_list = [u.name for u in Sport.query.all()]
+
             if sport_name in sport_list:
                 courts_list = Court.query.filter(and_(Court.sport_name == sport_name,
                                                       Court.date == to_date(input_date))).all()
@@ -334,8 +354,20 @@ class CourtCollection(Resource):
                     "date": input_date,
                     "courts": []
                 }
+                today_date = date.today()
+                current_time = datetime.now().strftime("%H:%M")
+                current_time = dt.datetime.strptime(current_time, '%H:%M').time()
+                today_free_slots = []
                 for c in courts_list:
-                    value["courts"].append({"court_no": c.court_no, "free_slots": c.free_slots})
+                    if to_date(input_date) == today_date:
+                        slots = c.free_slots
+                        new_slots = [dt.datetime.strptime(x, '%H:%M').time() for x in slots.split(",")]
+                        for x in new_slots:
+                            if x >= current_time:
+                                today_free_slots.append(str(x.strftime("%H:%M")))
+                        value["courts"].append({"court_no": c.court_no, "free_slots": ",".join(today_free_slots)})
+                    else:
+                        value["courts"].append({"court_no": c.court_no, "free_slots": c.free_slots})
                 return value, 200
             else:
                 return "Sport not found", 404
