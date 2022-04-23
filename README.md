@@ -16,6 +16,8 @@ pip install -r requirements.txt
 ```
 
 # Run and Test
+
+### Run
 1. Open terminal / command prompt 
 2. Clone the project
     ```
@@ -30,12 +32,12 @@ pip install -r requirements.txt
     ```
     For Windows users, follow [this tuitorial](https://www.educative.io/edpresso/what-is-chmod-in-windows) to change the permission to the files.
 
-3. If db/ folder does not exist in the project, create the new one before running the program. Otherwise, skip this step.
+4. If db/ folder does not exist in the project, create the new one before running the program. Otherwise, skip this step.
     ```
     mkdir db
     ```
 
-4. Run the program
+5. Run the program
 
     Please populate the database **ONCE at the first time** you run the program.
     ```
@@ -49,14 +51,23 @@ pip install -r requirements.txt
     ./run.sh -p false
     ```
 
-5. Open your browser and access 127.0.0.1:5000
-6. Delete all tables and database whenever you want by executing
+6. Open your browser and access 127.0.0.1:5000
+7. Delete all tables and database whenever you want by executing
     ```
     # On Linux
     ./delete_db.sh
     ```
 
-**!! NOTE:** The setup is written for users with Linux-based systems. However, if you are a Windows users, you can also follow the same commands after installing [cygwin](http://www.cygwin.com/) or [git-bash](https://git-scm.com/downloads).
+**!! NOTE:** The instruction is written for users with Linux-based systems. However, if you are a Windows users, you can also follow the same commands after installing [cygwin](http://www.cygwin.com/) or [git-bash](https://git-scm.com/downloads).
+
+### Test
+
+There are test files for resources and models. To run the tests, use the below command
+```
+# On Linux / Windows
+pytest
+```
+After running, you will see the number of passed cases, warning and test coverage value.
 
 ---
 # Useful links
